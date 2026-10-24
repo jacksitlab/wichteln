@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wichtel — A3: Waldlichtung</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #ede4d3;
+    background: #0f1f17;
+    background-image:
+      radial-gradient(ellipse at 50% -5%, #1e3628 0%, #0f1f17 55%),
+      radial-gradient(ellipse at 0% 100%, #14261c 0%, transparent 50%),
+      radial-gradient(ellipse at 100% 100%, #14261c 0%, transparent 50%);
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  .snow { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .snow span {
+    position: absolute; top: -10%; color: #f4ead6; opacity: 0.5;
+    animation-name: fall; animation-timing-function: linear;
+    animation-iteration-count: infinite; user-select: none; filter: blur(0.3px);
+  }
+  @keyframes fall {
+    0%   { transform: translate3d(0, -12vh, 0) rotate(0deg); }
+    100% { transform: translate3d(-10vw, 112vh, 0) rotate(360deg); }
+  }
+  /* ---- Baumreihe unten als Silhouette ---- */
+  .forest {
+    position: fixed; bottom: 0; left: 0; right: 0; height: 130px;
+    z-index: 0; pointer-events: none; opacity: 0.55;
+  }
+  .wrap { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 32px 20px 190px; }
+  header { text-align: center; margin-bottom: 8px; }
+  .flake { font-size: 22px; color: #c8a24a; letter-spacing: 10px; }
+  h1 {
+    font-family: "Caveat", cursive; font-weight: 600; font-size: 54px;
+    color: #f4ead6; margin: 0 0 2px; line-height: 1.05;
+  }
+  .sub { color: #9db3a4; font-size: 15px; }
+  .muted { color: #7d937f; font-size: 13px; }
+  .card {
+    background: rgba(27, 49, 36, 0.94); border: 1px solid #2c4a38; border-radius: 12px;
+    padding: 20px 22px; margin-top: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  }
+  .card h2 {
+    font-family: "Caveat", cursive; font-weight: 600; font-size: 30px;
+    color: #e8d5ae; margin-bottom: 8px;
+  }
+  .wish {
+    display: flex; align-items: center; gap: 10px; padding: 10px 4px;
+    border-bottom: 1px solid #24402f; font-size: 15px;
+  }
+  .wish:last-child { border-bottom: none; }
+  .wish .n { color: #c8a24a; font-family: Georgia, serif; font-size: 14px; min-width: 20px; }
+  .wish button { margin-left: auto; background: none; border: none; color: #6f8375;
+    cursor: pointer; font-size: 15px; }
+  .wish button:hover { color: #d8b96a; }
+  form.add { display: flex; gap: 10px; margin-top: 14px; }
+  form.add input[type=text] { min-width: 0; }
+  form.add .btn { flex-shrink: 0; }
+  input[type=text] {
+    flex: 1; background: #122019; border: 1px solid #2c4a38; border-radius: 8px;
+    padding: 10px 12px; color: #ede4d3; font-size: 15px; outline: none;
+  }
+  input[type=text]:focus { border-color: #c8a24a; }
+  .btn {
+    background: #c8a24a; color: #16281d; border: none; border-radius: 8px;
+    padding: 10px 18px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { background: #d8b96a; }
+  .status {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    background: rgba(18, 32, 25, 0.92); border: 1px dashed #2c4a38; border-radius: 10px;
+    padding: 12px; margin-top: 20px; font-size: 14px; color: #9db3a4;
+  }
+  .assignee { text-align: center; }
+  .assignee .name {
+    font-family: "Caveat", cursive; font-size: 42px; color: #f4ead6; margin: 0 0 10px;
+  }
+  .toggle-row { display: flex; gap: 8px; justify-content: center; margin-top: 40px; }
+  .toggle-row button {
+    background: none; border: 1px solid #2c4a38; color: #9db3a4; border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  .toggle-row button.active { border-color: #c8a24a; color: #e8d5ae; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="snow" id="snow"></div>
+
+<svg class="forest" viewBox="0 0 1200 130" preserveAspectRatio="xMidYMax slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+  <g fill="#122719">
+    <polygon points="60,130 100,50 140,130"/>
+    <polygon points="90,130 130,70 170,130"/>
+    <rect x="124" y="120" width="12" height="10"/>
+    <polygon points="300,130 350,35 400,130"/>
+    <polygon points="335,130 385,60 435,130"/>
+    <rect x="378" y="118" width="14" height="12"/>
+    <polygon points="720,130 760,58 800,130"/>
+    <polygon points="750,130 795,80 840,130"/>
+    <rect x="784" y="120" width="12" height="10"/>
+    <polygon points="1050,130 1105,40 1160,130"/>
+    <polygon points="1090,130 1140,72 1190,130"/>
+    <rect x="1130" y="118" width="14" height="12"/>
+    <polygon points="1010,130 1040,85 1070,130"/>
+    <polygon points="560,130 590,90 620,130"/>
+  </g>
+</svg>
+
+<div class="wrap">
+  <header>
+    <div class="flake">&#10052; &#10052; &#10052;</div>
+    <h1>Weihnachten 2026</h1>
+    <p class="sub">Die Wichtelrunde der Familie</p>
+  </header>
+
+  <div class="status" id="status-pre">
+    &#8987; Die Auslosung findet am <b>20. Dezember</b> statt — trage bis dahin deine Wünsche ein.
+  </div>
+
+  <div class="card">
+    <h2>Deine Wünsche</h2>
+    <p class="muted" style="margin-bottom:6px">Nur du und dein Wichtel sehen diese Liste.</p>
+    <div id="wishlist">
+      <div class="wish"><span class="n">1.</span> Grillbuch: „Rivalen am Rost"</div>
+      <div class="wish"><span class="n">2.</span> Gute Bohnen für den Kaffeevollautomat</div>
+      <div class="wish"><span class="n">3.</span> Warme Socken für die Winterwanderung</div>
+    </div>
+    <form class="add" onsubmit="return addWish(event)">
+      <input type="text" id="newwish" placeholder="Noch ein Wunsch …" maxlength="500">
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+  </div>
+
+  <div class="card assignee hidden" id="card-assignee">
+    <h2>Du wichtelst f&uuml;r</h2>
+    <div class="name">Clara</div>
+    <div id="assignee-wishes">
+      <div class="wish"><span class="n">1.</span> Ein gutes Messerset</div>
+      <div class="wish"><span class="n">2.</span> Krimi-Hörbuch für lange Autofahrten</div>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <button id="btn-pre" class="active" onclick="setState(false)">Vor der Ziehung</button>
+    <button id="btn-post" onclick="setState(true)">Ausgelost</button>
+  </div>
+  <p class="muted" style="text-align:center;margin-top:8px">Vorschau-Toggle: zeigt die zwei Zustände der Seite</p>
+</div>
+
+<script>
+(function snowfall() {
+  const layer = document.getElementById('snow');
+  const flakes = ['&#10052;', '&#10053;', '&#10054;', '&#10052;'];
+  for (let i = 0; i < 60; i++) {   // dichtester Schneefall der drei Varianten
+    const s = document.createElement('span');
+    s.innerHTML = flakes[i % flakes.length];
+    s.style.left = (Math.random() * 100) + '%';
+    const size = 6 + Math.random() * 18;
+    s.style.fontSize = size + 'px';
+    s.style.opacity = (0.2 + Math.random() * 0.55).toFixed(2);
+    s.style.animationDuration = (6 + Math.random() * 14) + 's';
+    s.style.animationDelay = (-Math.random() * 20) + 's';
+    layer.appendChild(s);
+  }
+})();
+
+let count = 3;
+function addWish(e) {
+  e.preventDefault();
+  const inp = document.getElementById('newwish');
+  if (!inp.value.trim()) return false;
+  count++;
+  const div = document.createElement('div');
+  div.className = 'wish';
+  div.innerHTML = '<span class="n">' + count + '.</span> ' +
+    inp.value.replace(/</g, '&lt;') +
+    ' <button onclick="this.parentElement.remove()" title="Löschen">&#10005;</button>';
+  document.getElementById('wishlist').appendChild(div);
+  inp.value = '';
+  return false;
+}
+function setState(drawn) {
+  document.getElementById('status-pre').classList.toggle('hidden', drawn);
+  document.getElementById('card-assignee').classList.toggle('hidden', !drawn);
+  document.getElementById('btn-pre').classList.toggle('active', !drawn);
+  document.getElementById('btn-post').classList.toggle('active', drawn);
+}
+</script>
+</body>
+</html>

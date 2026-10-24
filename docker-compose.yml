@@ -1,0 +1,16 @@
+services:
+  wichtel:
+    build: .
+    container_name: wichtel
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      WICHTEL_DB_PATH: /data/wichtel.db
+      # Für korrekte Share-Links hinter einem Reverse-Proxy auf Produktionshost setzen:
+      # WICHTEL_BASE_URL: https://wichtel.example.com
+    volumes:
+      - wichtel-data:/data
+
+volumes:
+  wichtel-data:

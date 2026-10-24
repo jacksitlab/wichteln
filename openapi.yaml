@@ -1,0 +1,631 @@
+openapi: 3.0.3
+info:
+  title: Wichtel API
+  description: >
+    Wichtel-Tool ohne Anmeldung. Zugriff ausschließlich über zufällige Token in der URL:
+    ein Admin-Token (Gruppe verwalten + Auslosung), ein Join-Token (Beitritt, per Link
+    vom Admin geteilt), ein Personal-Token pro Teilnehmer (eigene Wünsche + nach der
+    Ziehung die Liste des Zugewiesenen). Ungültige oder abgelaufene Token liefern
+    einheitlich 404, um kein Token-Orakel bereitzustellen.
+  version: 0.1.0
+servers:
+  - url: /
+tags:
+  - name: groups
+    description: Gruppe anlegen und (als Admin) verwalten
+  - name: join
+    description: Beitritt über den geteilten Join-Link
+  - name: me
+    description: Teilnehmersicht über den persönlichen Link
+  - name: admin
+    description: Admin-Aktionen (Auslosung, Teilnehmeverwaltung)
+
+paths:
+  /api/groups:
+    post:
+      tags: [groups]
+      summary: Neue Wichtelgruppe anlegen
+      description: >
+        Erstellt die Gruppe; der Ersteller ist automatisch Admin. Die Response enthält
+        Admin-Token und Join-Token genau einmal im Klartext. Der Admin-Token wird danach
+        nur noch als Hash gespeichert und kann NIE wieder angezeigt werden.
+      operationId: createGroup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGroupRequest'
+      responses:
+        '201':
+          description: Gruppe erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CreateGroupResponse'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/groups/{adminToken}:
+    get:
+      tags: [admin]
+      summary: Admin-Ansicht der Gruppe
+      operationId: getGroupAdmin
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      responses:
+        '200':
+          description: Gruppe inkl. Teilnehmerliste (ohne fremde Tokens)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminGroupView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [admin]
+      summary: Titel, Beschreibung oder Zieldatum ändern
+      operationId: updateGroup
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGroupRequest'
+      responses:
+        '200':
+          description: Aktualisierte Gruppe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AdminGroupView'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/groups/{adminToken}/participants:
+    get:
+      tags: [admin]
+      summary: Teilnehmerliste abrufen
+      operationId: listParticipants
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      responses:
+        '200':
+          description: Teilnehmer der Gruppe
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Participant'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/groups/{adminToken}/participants/{participantId}:
+    delete:
+      tags: [admin]
+      summary: Teilnehmer vor der Ziehung entfernen
+      description: >
+        Nur solange die Gruppe nicht ausgelost wurde (drawnAt == null) — danach 409.
+        Deren Personal-Token wird ungültig, Wünsche werden mitgelöscht.
+      operationId: removeParticipant
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+        - $ref: '#/components/parameters/ParticipantId'
+      responses:
+        '204':
+          description: Teilnehmer entfernt
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictDrawn'
+
+  /api/groups/{adminToken}/participants/{participantId}/link:
+    post:
+      tags: [admin]
+      summary: Personal-Link eines Teilnehmers neu erstellen
+      description: >
+        Für den Fall "Teilnehmer hat seinen Link verloren": erzeugt ein neues
+        Personal-Token und invalidiert das alte. Auch nach der Ziehung möglich
+        (der Teilnehmer sieht dann weiterhin seinen Zugewiesenen).
+      operationId: regenerateParticipantLink
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+        - $ref: '#/components/parameters/ParticipantId'
+      responses:
+        '200':
+          description: Neuer persönlicher Link
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PersonalLinkResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/groups/{adminToken}/draw:
+    post:
+      tags: [admin]
+      summary: Wichtel einmalig auslosen
+      description: >
+        Erzeugt eine zufällige, fixpunktfreie Zuordnung (Derangement): jeder Teilnehmer
+        bekommt genau eine Person, niemand sich selbst; jeder ist genau einmal Geber
+        und genau einmal Empfänger. Die Ziehung ist unwiderruflich; ein zweiter Aufruf
+        liefert 409. Der Join-Link wird danach deaktiviert. Ab mindestens 2 Teilnehmern
+        möglich; bei 2 oder 3 Teilnehmern kann es gegenseitige Paare geben (A zieht B,
+        B zieht A) — das ist zulässig.
+      operationId: drawAssignments
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      responses:
+        '200':
+          description: Auslosung erfolgreich
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [drawnAt, assignmentCount]
+                properties:
+                  drawnAt:
+                    type: string
+                    format: date-time
+                  assignmentCount:
+                    type: integer
+                    minimum: 2
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictDrawn'
+        '422':
+          description: Zu wenige Teilnehmer (weniger als 2)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /api/join/{joinToken}:
+    post:
+      tags: [join]
+      summary: Gruppe über Join-Link beitreten
+      description: >
+        Legt einen Teilnehmer an und gibt das Personal-Token genau einmal im Klartext
+        zurück (danach nur noch als Hash gespeichert, nicht wiederherstellbar).
+        Nach der Ziehung ist der Join-Link deaktiviert (409).
+      operationId: joinGroup
+      parameters:
+        - $ref: '#/components/parameters/JoinToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinRequest'
+      responses:
+        '201':
+          description: Beigetreten; persönlicher Link erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/JoinResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Beitritt nicht mehr möglich (bereits ausgelost)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /api/me/{personalToken}:
+    get:
+      tags: [me]
+      summary: Eigene Daten und Wünsche abrufen
+      operationId: getMe
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+      responses:
+        '200':
+          description: Eigene Teilnahmedaten
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MeResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      tags: [me]
+      summary: Selbst aus der Gruppe austragen
+      description: >
+        Eigenständiger Austrag vor der Ziehung (Personal-Token und Wünsche werden
+        gelöscht). Nach der Ziehung 409 — die Auslosung steht fest.
+      operationId: leaveGroup
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+      responses:
+        '204':
+          description: Ausgetreten
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictDrawn'
+
+  /api/me/{personalToken}/wishes:
+    post:
+      tags: [me]
+      summary: Wunsch hinzufügen
+      operationId: addWish
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WishRequest'
+      responses:
+        '201':
+          description: Wunsch erstellt
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wish'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /api/me/{personalToken}/wishes/{wishId}:
+    put:
+      tags: [me]
+      summary: Wunsch ändern oder umsortieren
+      operationId: updateWish
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+        - $ref: '#/components/parameters/WishId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WishRequest'
+      responses:
+        '200':
+          description: Wunsch aktualisiert
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Wish'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+    delete:
+      tags: [me]
+      summary: Wunsch löschen
+      operationId: deleteWish
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+        - $ref: '#/components/parameters/WishId'
+      responses:
+        '204':
+          description: Wunsch gelöscht
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /api/me/{personalToken}/assignee:
+    get:
+      tags: [me]
+      summary: Zugewiesene Person und deren Wünsche abrufen
+      description: >
+        Nur nach erfolgter Auslosung. Vor der Ziehung 409. Server prüft, dass der
+        Anfragende selbst Teilnehmer der ausgelosten Gruppe ist.
+      operationId: getAssignee
+      parameters:
+        - $ref: '#/components/parameters/PersonalToken'
+      responses:
+        '200':
+          description: Die beschenkte Person mit deren Wünschen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Assignee'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          description: Noch nicht ausgelost
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  parameters:
+    AdminToken:
+      name: adminToken
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{43}$'
+      description: Admin-Token aus der URL (/g/{adminToken})
+    JoinToken:
+      name: joinToken
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{43}$'
+      description: Join-Token aus der geteilten Beitritts-URL (/join/{joinToken})
+    PersonalToken:
+      name: personalToken
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[A-Za-z0-9_-]{43}$'
+      description: Personal-Token des Teilnehmers aus der URL (/p/{personalToken})
+    ParticipantId:
+      name: participantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WishId:
+      name: wishId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  responses:
+    NotFound:
+      description: Unbekannter oder ungültiger Token bzw. Ressource (einheitliche Meldung)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ConflictDrawn:
+      description: Aktion nicht möglich, weil die Gruppe bereits ausgelost wurde
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    ValidationError:
+      description: Validierungsfehler
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+    RateLimited:
+      description: Zu viele Anfragen (Rate-Limit)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Error'
+
+  schemas:
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          description: >
+            Maschinenlesbarer Fehlercode, z.B. NOT_FOUND, ALREADY_DRAWN,
+            RATE_LIMITED, VALIDATION
+        message:
+          type: string
+          description: Menschliche Fehlermeldung (deutsch)
+
+    CreateGroupRequest:
+      type: object
+      required: [title]
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Weihnachten 2026
+        description:
+          type: string
+          maxLength: 2000
+          description: Kleiner Info-Text an alle Teilnehmer
+          example: "Wie jedes Jahr: Budget 30 Euro. Ausgelost wird am 20. Dezember."
+        drawDate:
+          type: string
+          format: date
+          description: >
+            Zieldatum, an dem der Admin die Auslosung per Knopfdruck vornehmen will.
+            Rein informativ — die Auslosung erfolgt manuell durch den Admin.
+
+    UpdateGroupRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 2000
+        drawDate:
+          type: string
+          format: date
+
+    CreateGroupResponse:
+      type: object
+      required: [group, adminToken, adminUrl, joinToken, joinUrl]
+      properties:
+        group:
+          $ref: '#/components/schemas/AdminGroupView'
+        adminToken:
+          type: string
+          description: Klartext, genau einmal zurückgegeben — nicht wiederherstellbar
+        adminUrl:
+          type: string
+          description: Fertige Admin-URL (/g/{adminToken})
+        joinToken:
+          type: string
+          description: Klartext; vom Admin an alle geteilt werden
+        joinUrl:
+          type: string
+          description: Fertige Beitritts-URL (/join/{joinToken})
+
+    AdminGroupView:
+      type: object
+      required: [id, title, drawnAt, joinUrl, participants]
+      properties:
+        id:
+          type: string
+          format: uuid
+        title:
+          type: string
+        description:
+          type: string
+          nullable: true
+        drawDate:
+          type: string
+          format: date
+          nullable: true
+        drawnAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: null = noch nicht ausgelost
+        joinUrl:
+          type: string
+          description: >
+            Join-URL bleibt für den Admin jederzeit abrufbar (der Link ist zum Teilen
+            gedacht, muss also rekonstruierbar sein — im Gegensatz zu Admin- und
+            Personal-Tokens).
+        participants:
+          type: array
+          items:
+            $ref: '#/components/schemas/Participant'
+
+    Participant:
+      type: object
+      required: [id, name, joinedAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        joinedAt:
+          type: string
+          format: date-time
+
+    JoinRequest:
+      type: object
+      required: [name]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 60
+          example: Michael
+
+    JoinResponse:
+      type: object
+      required: [participant, personalToken, personalUrl]
+      properties:
+        participant:
+          $ref: '#/components/schemas/Participant'
+        personalToken:
+          type: string
+          description: Klartext, genau einmal zurückgegeben — nicht wiederherstellbar
+        personalUrl:
+          type: string
+          description: Fertige persönliche URL (/p/{personalToken})
+
+    PersonalLinkResponse:
+      type: object
+      required: [participantId, personalToken, personalUrl]
+      properties:
+        participantId:
+          type: string
+          format: uuid
+        personalToken:
+          type: string
+        personalUrl:
+          type: string
+
+    WishRequest:
+      type: object
+      required: [text]
+      properties:
+        text:
+          type: string
+          minLength: 1
+          maxLength: 500
+          example: Gut durchdachtes Grillzubehör
+        position:
+          type: integer
+          minimum: 0
+          description: >
+            Reihenfolge (0 = erstes). Ohne Angabe: hinten anfügen. Zum Umsortieren
+            Wunsch mit neuer Position per PUT aktualisieren.
+
+    Wish:
+      type: object
+      required: [id, position, text]
+      properties:
+        id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+          minimum: 0
+        text:
+          type: string
+
+    MeResponse:
+      type: object
+      required: [groupTitle, participant, wishes, drawn]
+      properties:
+        groupTitle:
+          type: string
+        groupDescription:
+          type: string
+          nullable: true
+        drawDate:
+          type: string
+          format: date
+          nullable: true
+        drawn:
+          type: boolean
+          description: false = Wichtelei läuft noch, true = Auslosung ist erfolgt
+        drawnAt:
+          type: string
+          format: date-time
+          nullable: true
+        participant:
+          $ref: '#/components/schemas/Participant'
+        wishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Wish'
+
+    Assignee:
+      type: object
+      required: [name, wishes]
+      properties:
+        name:
+          type: string
+          description: Name des Zugewiesenen (die Person, die man beschenkt)
+        wishes:
+          type: array
+          items:
+            $ref: '#/components/schemas/Wish'

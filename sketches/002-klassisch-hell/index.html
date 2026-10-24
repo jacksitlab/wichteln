@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wichtel — Variante B: Klassisch-hell</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #26292b;
+    background: #f7f5f1;
+    line-height: 1.55;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .banner {
+    background: #a4282c; color: #fff; text-align: center;
+    padding: 28px 20px 24px;
+  }
+  .banner h1 { font-size: 26px; font-weight: 700; letter-spacing: 0.3px; }
+  .banner p { font-size: 14px; opacity: 0.85; margin-top: 2px; }
+  .wrap { max-width: 640px; margin: 0 auto; padding: 24px 20px 64px; }
+  .muted { color: #7a7d80; font-size: 13px; }
+  .card {
+    background: #fff; border: 1px solid #e5e1d8; border-radius: 10px;
+    padding: 18px 20px; margin-top: 18px;
+    box-shadow: 0 1px 3px rgba(38,41,43,0.05);
+  }
+  .card h2 { font-size: 17px; font-weight: 600; margin-bottom: 4px; }
+  .badge {
+    display: inline-block; background: #fdeaea; color: #a4282c; border-radius: 999px;
+    font-size: 12.5px; font-weight: 600; padding: 3px 12px; margin-top: 2px;
+  }
+  .badge.green { background: #e8f3ec; color: #2e6b46; }
+  .alert {
+    background: #fdf6e3; border: 1px solid #f0e2b8; border-radius: 10px;
+    padding: 12px 16px; margin-top: 18px; font-size: 14px; color: #6b5b23;
+  }
+  .wish {
+    display: flex; align-items: center; gap: 10px; padding: 10px 2px;
+    border-bottom: 1px solid #f0ede6; font-size: 15px;
+  }
+  .wish:last-child { border-bottom: none; }
+  .wish .n { color: #a4282c; font-weight: 600; font-size: 13px; min-width: 20px; }
+  .wish button { margin-left: auto; background: none; border: none; color: #b8b4ab;
+    cursor: pointer; font-size: 15px; }
+  .wish button:hover { color: #a4282c; }
+  form.add { display: flex; gap: 10px; margin-top: 12px; }
+  form.add input[type=text] { min-width: 0; }
+  form.add .btn { flex-shrink: 0; }
+  input[type=text] {
+    flex: 1; background: #fff; border: 1px solid #d4cfc2; border-radius: 8px;
+    padding: 10px 12px; font-size: 15px; outline: none;
+  }
+  input[type=text]:focus { border-color: #a4282c; box-shadow: 0 0 0 3px rgba(164,40,44,0.1); }
+  .btn {
+    background: #a4282c; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 18px; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { background: #8d2226; }
+  .assignee-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 6px; }
+  .assignee-head .name { font-size: 22px; font-weight: 700; color: #a4282c; }
+  .toggle-row { display: flex; gap: 8px; justify-content: center; margin-top: 32px; }
+  .toggle-row button {
+    background: none; border: 1px solid #d4cfc2; color: #7a7d80; border-radius: 999px;
+    padding: 6px 14px; font-size: 13px; cursor: pointer;
+  }
+  .toggle-row button.active { border-color: #a4282c; color: #a4282c; background: #fdeaea; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<div class="banner">
+  <h1>Weihnachten 2026</h1>
+  <p>Die Wichtelrunde der Familie</p>
+</div>
+<div class="wrap">
+  <div class="alert" id="status-pre">
+    <b>Auslosung am 20. Dezember.</b> Trage bis dahin deine Wünsche ein — dein Wichtel sieht die Liste danach.
+  </div>
+
+  <div class="card">
+    <h2>Deine Wünsche</h2>
+    <span class="muted">Nur du und dein Wichtel sehen diese Liste.</span>
+    <div id="wishlist">
+      <div class="wish"><span class="n">1.</span> Grillbuch: „Rivalen am Rost"</div>
+      <div class="wish"><span class="n">2.</span> Gute Bohnen für den Kaffeevollautomat</div>
+      <div class="wish"><span class="n">3.</span> Warme Socken für die Winterwanderung</div>
+    </div>
+    <form class="add" onsubmit="return addWish(event)">
+      <input type="text" id="newwish" placeholder="Noch ein Wunsch …" maxlength="500">
+      <button class="btn" type="submit">Hinzufügen</button>
+    </form>
+  </div>
+
+  <div class="card hidden" id="card-assignee">
+    <div class="assignee-head">
+      <h2>Du wichtelst für</h2>
+      <span class="name">Clara</span>
+    </div>
+    <span class="badge green">Ausgelost am 20. Dezember</span>
+    <div id="assignee-wishes" style="margin-top:10px">
+      <div class="wish"><span class="n">1.</span> Ein gutes Messerset</div>
+      <div class="wish"><span class="n">2.</span> Krimi-Hörbuch für lange Autofahrten</div>
+    </div>
+  </div>
+
+  <div class="toggle-row">
+    <button id="btn-pre" class="active" onclick="setState(false)">Vor der Ziehung</button>
+    <button id="btn-post" onclick="setState(true)">Ausgelost</button>
+  </div>
+  <p class="muted" style="text-align:center;margin-top:8px">Vorschau-Toggle: zeigt die zwei Zustände der Seite</p>
+</div>
+
+<script>
+let count = 3;
+function addWish(e) {
+  e.preventDefault();
+  const inp = document.getElementById('newwish');
+  if (!inp.value.trim()) return false;
+  count++;
+  const div = document.createElement('div');
+  div.className = 'wish';
+  div.innerHTML = '<span class="n">' + count + '.</span> ' +
+    inp.value.replace(/</g, '&lt;') +
+    ' <button onclick="this.parentElement.remove()" title="Löschen">&#10005;</button>';
+  document.getElementById('wishlist').appendChild(div);
+  inp.value = '';
+  return false;
+}
+function setState(drawn) {
+  document.getElementById('status-pre').classList.toggle('hidden', drawn);
+  document.getElementById('card-assignee').classList.toggle('hidden', !drawn);
+  document.getElementById('btn-pre').classList.toggle('active', !drawn);
+  document.getElementById('btn-post').classList.toggle('active', drawn);
+}
+</script>
+</body>
+</html>
