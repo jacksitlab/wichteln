@@ -4,8 +4,10 @@ import { postGroup } from '../api'
 import { ApiError } from '../types'
 import { LinkBox } from '../components/Widgets'
 import { absUrl } from '../urls'
+import { useT } from '../i18n'
 
 export default function CreatePage() {
+  const { t } = useT()
   const [title, setTitle] = useState('')
   const [description, setDescription] = useState('')
   const [drawDate, setDrawDate] = useState('')
@@ -24,10 +26,10 @@ export default function CreatePage() {
         drawDate: drawDate || undefined,
       })
       setCreated(resp)
-      // Admin-Token in die URL legen, damit der Admin die Seite neu laden kann
+      // Put the admin token into the URL so the admin can reload the page
       window.history.replaceState(null, '', `/g/${resp.adminToken}`)
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Server nicht erreichbar.')
+      setError(err instanceof ApiError ? err.localizedMessage(t) : t('error_server'))
     } finally {
       setBusy(false)
     }
@@ -37,33 +39,28 @@ export default function CreatePage() {
     return (
       <div className="wrap">
         <header className="page">
-          <h1 className="page-title">Fast fertig!</h1>
-          <p className="sub">Speichere jetzt deine beiden Links</p>
+          <h1 className="page-title">{t('create_done_title')}</h1>
+          <p className="sub">{t('create_done_sub')}</p>
         </header>
 
-        <div className="warn">
-          <b>Wichtig:</b> Der Admin-Link wird <b>nie wieder angezeigt</b>.
-          Setze ein Lesezeichen, bevor du die Seite verlässt!
-        </div>
+        <div className="warn">{t('create_warn_admin')}</div>
 
         <div className="card">
-          <h2 className="section-title">Dein Admin-Link</h2>
-          <p className="muted">Nur für dich — damit verwaltest du die Runde.</p>
+          <h2 className="section-title">{t('create_admin_link')}</h2>
+          <p className="muted">{t('create_admin_link_hint')}</p>
           <LinkBox url={absUrl(created.adminUrl)} />
         </div>
 
         <div className="card">
-          <h2 className="section-title">Beitritts-Link für die Familie</h2>
-          <p className="muted">Diesen Link teile mit allen, die mitwichteln wollen.</p>
+          <h2 className="section-title">{t('create_join_link')}</h2>
+          <p className="muted">{t('create_join_link_hint')}</p>
           <LinkBox url={absUrl(created.joinUrl)} />
         </div>
 
         <div className="card" style={{ textAlign: 'center' }}>
-          <p className="muted" style={{ marginBottom: 12 }}>
-            Alles gespeichert? Dann weiter zur Admin-Ansicht.
-          </p>
+          <p className="muted" style={{ marginBottom: 12 }}>{t('create_continue')}</p>
           <Link to={`/g/${created.adminToken}`} className="btn" style={{ textDecoration: 'none' }}>
-            Zur Admin-Ansicht
+            {t('create_to_admin')}
           </Link>
         </div>
       </div>
@@ -74,36 +71,36 @@ export default function CreatePage() {
     <div className="wrap">
       <header className="page">
         <div className="flakes">{'\u2744\u2744\u2744'}</div>
-        <h1 className="page-title">Neue Wichtelrunde</h1>
-        <p className="sub">Du bist automatisch Admin der Runde</p>
+        <h1 className="page-title">{t('create_title')}</h1>
+        <p className="sub">{t('create_sub')}</p>
       </header>
 
       <div className="card">
         <form onSubmit={submit}>
           <label className="field">
-            Titel *
+            {t('field_title')} *
             <input
               type="text" value={title} maxLength={100} required
-              placeholder="z.B. Weihnachten 2026"
+              placeholder={t('field_title_placeholder')}
               onChange={(e) => setTitle(e.target.value)}
             />
           </label>
           <label className="field">
-            Beschreibung
+            {t('field_description')}
             <textarea
               value={description} maxLength={2000}
-              placeholder="z.B. Budget 30 Euro. Ausgelost wird am 20. Dezember."
+              placeholder={t('field_description_placeholder')}
               onChange={(e) => setDescription(e.target.value)}
             />
           </label>
           <label className="field">
-            Auslosungsdatum
+            {t('field_drawdate')}
             <input type="date" value={drawDate} onChange={(e) => setDrawDate(e.target.value)} />
           </label>
           {error && <p className="warn">{error}</p>}
           <div style={{ marginTop: 20, textAlign: 'center' }}>
             <button className="btn" type="submit" disabled={busy || !title.trim()}>
-              {busy ? 'Wird erstellt …' : 'Wichtelrunde erstellen'}
+              {busy ? t('create_submitting') : t('create_submit')}
             </button>
           </div>
         </form>

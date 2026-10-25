@@ -3,7 +3,10 @@ FROM node:22-slim AS web
 WORKDIR /build
 COPY web/package.json web/package-lock.json ./
 RUN npm ci
-COPY web/ ./
+# Explizit nur Quelldateien — ein ggf. mitkopiertes node_modules/dist
+# kann die frische Installation nicht überschreiben.
+COPY web/index.html web/tsconfig.json web/vite.config.ts ./
+COPY web/src ./src
 RUN npm run build
 
 # ---- Stage 2: Python-Backend + Frontend ----

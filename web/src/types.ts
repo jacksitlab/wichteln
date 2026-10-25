@@ -60,8 +60,22 @@ export interface ApiErrorBody {
   message: string
 }
 
+import type { TranslationKey } from './i18n/de'
+
 export class ApiError extends Error {
   constructor(public status: number, public body: ApiErrorBody) {
     super(body.message)
+  }
+
+  /**
+   * Localized message for display. Maps the backend's machine-readable error
+   * code to a translated string; unknown codes fall back to the raw backend
+   * message. The backend messages are English (developer-facing).
+   */
+  localizedMessage(t: (key: TranslationKey, vars?: Record<string, string | number>) => string): string {
+    const key = `err_${this.body.code}` as TranslationKey
+    const localized = t(key)
+    if (localized === key) return this.body.message // unknown code -> raw backend text
+    return localized
   }
 }

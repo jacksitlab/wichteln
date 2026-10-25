@@ -5,7 +5,7 @@ from ..ratelimit import join_limiter
 from ..store import Store
 from ..tokens import new_token, token_hash
 
-TOKEN_404 = "Link ungültig oder unbekannt."
+TOKEN_404 = "Invalid or unknown link."
 
 
 def register(app):
@@ -22,14 +22,14 @@ def register(app):
         client = request.client.host if request.client else "unknown"
         if not join_limiter.allow(client):
             raise ApiError(429, "RATE_LIMITED",
-                           "Zu viele Anfragen. Bitte später erneut versuchen.")
+                           "Too many requests. Please try again later.")
         s: Store = app.state.store_factory(request)
         group = s.group_by_join(join_token)
         if group is None:
             raise ApiError(404, "NOT_FOUND", TOKEN_404)
         if group["drawn_at"] is not None:
             raise ApiError(409, "ALREADY_DRAWN",
-                           "Die Wichtelei wurde bereits ausgelost. Ein Beitritt ist nicht mehr möglich.")
+                           "The drawing has already taken place. Joining is no longer possible.")
         personal_token = new_token()
         participant = s.add_participant(group["id"], body.name, token_hash(personal_token))
         base = app.state.settings.base_url or str(request.base_url).rstrip("/")

@@ -1,8 +1,8 @@
-"""Serviert das gebaute React-Frontend (web/dist) mit SPA-Fallback.
+"""Serves the built React frontend (web/dist) with SPA fallback.
 
-Alle Pfade außer /api/* und /api/docs werden auf die SPA gelegt:
-existierende Dateien direkt, alles andere auf index.html (React-Router
-übernimmt /g/..., /p/..., /join/...).
+All paths except /api/* and /api/docs are mapped to the SPA: existing files
+directly, everything else to index.html (the React router handles
+/g/..., /p/..., /join/...).
 """
 import os
 
@@ -19,17 +19,17 @@ class SPAStaticFiles(StaticFiles):
         try:
             return await super().get_response(path, scope)
         except StarletteHTTPException:
-            # SPA-Fallback: unbekannte Pfade -> index.html
+            # SPA fallback: unknown paths -> index.html
             return await super().get_response("index.html", scope)
 
 
 def mount_spa(app: FastAPI, settings) -> None:
     dist = os.environ.get("WICHTEL_WEB_DIST", "")
     if not dist:
-        # Standard: liegt das Frontend beim server-Verzeichnis? (Repo-Struktur)
+        # Default: is the frontend next to the server directory? (repo layout)
         candidate = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "dist")
         dist = candidate if os.path.isdir(candidate) else ""
     if not dist or not os.path.isdir(dist):
-        return  # ohne Frontend nur API-Betrieb (z.B. reines Backend-Testing)
+        return  # without frontend: API-only operation (e.g. backend testing)
 
     app.mount("/", SPAStaticFiles(directory=dist), name="spa")

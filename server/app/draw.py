@@ -2,14 +2,14 @@ import secrets
 
 
 def derangement(n: int) -> list[int]:
-    """Zufällige fixpunktfreie Permutation: perm[i] != i für alle i.
+    """Random fixed-point-free permutation: perm[i] != i for all i.
 
-    Fisher-Yates mit kryptografischem RNG; bei n >= 2 existiert garantiert
-    eine fixpunktfreie Permutation, erneutes Mischen bis Treffer
-    (erwartet < 2 Versuche).
+    Fisher-Yates with a cryptographic RNG; for n >= 2 a fixed-point-free
+    permutation is guaranteed to exist, so re-shuffle until one is found
+    (expected < 2 attempts).
     """
     if n < 2:
-        raise ValueError("n >= 2 erforderlich")
+        raise ValueError("n >= 2 required")
     while True:
         perm = list(range(n))
         for i in range(n - 1, 0, -1):

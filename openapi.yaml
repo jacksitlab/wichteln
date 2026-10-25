@@ -2,33 +2,33 @@ openapi: 3.0.3
 info:
   title: Wichtel API
   description: >
-    Wichtel-Tool ohne Anmeldung. Zugriff ausschließlich über zufällige Token in der URL:
-    ein Admin-Token (Gruppe verwalten + Auslosung), ein Join-Token (Beitritt, per Link
-    vom Admin geteilt), ein Personal-Token pro Teilnehmer (eigene Wünsche + nach der
-    Ziehung die Liste des Zugewiesenen). Ungültige oder abgelaufene Token liefern
-    einheitlich 404, um kein Token-Orakel bereitzustellen.
+    Secret Santa ("Wichteln") tool without registration. Access is exclusively via
+    random tokens in the URL: one admin token (manage group + drawing), one join
+    token (join via link shared by the admin), one personal token per participant
+    (own wishes + after the drawing the list of the assigned person). Invalid or
+    expired tokens uniformly return 404 to avoid a token oracle.
   version: 0.1.0
 servers:
   - url: /
 tags:
   - name: groups
-    description: Gruppe anlegen und (als Admin) verwalten
+    description: Create a group and manage it (as admin)
   - name: join
-    description: Beitritt über den geteilten Join-Link
+    description: Join via the shared join link
   - name: me
-    description: Teilnehmersicht über den persönlichen Link
+    description: Participant view via the personal link
   - name: admin
-    description: Admin-Aktionen (Auslosung, Teilnehmeverwaltung)
+    description: Admin actions (drawing, participant management)
 
 paths:
   /api/groups:
     post:
       tags: [groups]
-      summary: Neue Wichtelgruppe anlegen
+      summary: Create a new Wichtel group
       description: >
-        Erstellt die Gruppe; der Ersteller ist automatisch Admin. Die Response enthält
-        Admin-Token und Join-Token genau einmal im Klartext. Der Admin-Token wird danach
-        nur noch als Hash gespeichert und kann NIE wieder angezeigt werden.
+        Creates the group; the creator automatically becomes the admin. The response
+        contains the admin token and join token exactly once in clear text. The admin
+        token is afterwards stored only as a hash and can NEVER be shown again.
       operationId: createGroup
       requestBody:
         required: true
@@ -38,7 +38,7 @@ paths:
               $ref: '#/components/schemas/CreateGroupRequest'
       responses:
         '201':
-          description: Gruppe erstellt
+          description: Group created
           content:
             application/json:
               schema:
@@ -51,13 +51,13 @@ paths:
   /api/groups/{adminToken}:
     get:
       tags: [admin]
-      summary: Admin-Ansicht der Gruppe
+      summary: Admin view of the group
       operationId: getGroupAdmin
       parameters:
         - $ref: '#/components/parameters/AdminToken'
       responses:
         '200':
-          description: Gruppe inkl. Teilnehmerliste (ohne fremde Tokens)
+          description: Group including participant list (without other participants' tokens)
           content:
             application/json:
               schema:
@@ -66,7 +66,7 @@ paths:
           $ref: '#/components/responses/NotFound'
     patch:
       tags: [admin]
-      summary: Titel, Beschreibung oder Zieldatum ändern
+      summary: Change title, description or target date
       operationId: updateGroup
       parameters:
         - $ref: '#/components/parameters/AdminToken'
@@ -78,7 +78,7 @@ paths:
               $ref: '#/components/schemas/UpdateGroupRequest'
       responses:
         '200':
-          description: Aktualisierte Gruppe
+          description: Updated group
           content:
             application/json:
               schema:
@@ -91,13 +91,13 @@ paths:
   /api/groups/{adminToken}/participants:
     get:
       tags: [admin]
-      summary: Teilnehmerliste abrufen
+      summary: List participants
       operationId: listParticipants
       parameters:
         - $ref: '#/components/parameters/AdminToken'
       responses:
         '200':
-          description: Teilnehmer der Gruppe
+          description: Participants of the group
           content:
             application/json:
               schema:
@@ -110,17 +110,17 @@ paths:
   /api/groups/{adminToken}/participants/{participantId}:
     delete:
       tags: [admin]
-      summary: Teilnehmer vor der Ziehung entfernen
+      summary: Remove a participant before the drawing
       description: >
-        Nur solange die Gruppe nicht ausgelost wurde (drawnAt == null) — danach 409.
-        Deren Personal-Token wird ungültig, Wünsche werden mitgelöscht.
+        Only while the group has not been drawn (drawnAt == null) — afterwards 409.
+        The participant's personal token becomes invalid; their wishes are deleted.
       operationId: removeParticipant
       parameters:
         - $ref: '#/components/parameters/AdminToken'
         - $ref: '#/components/parameters/ParticipantId'
       responses:
         '204':
-          description: Teilnehmer entfernt
+          description: Participant removed
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -129,18 +129,18 @@ paths:
   /api/groups/{adminToken}/participants/{participantId}/link:
     post:
       tags: [admin]
-      summary: Personal-Link eines Teilnehmers neu erstellen
+      summary: Regenerate a participant's personal link
       description: >
-        Für den Fall "Teilnehmer hat seinen Link verloren": erzeugt ein neues
-        Personal-Token und invalidiert das alte. Auch nach der Ziehung möglich
-        (der Teilnehmer sieht dann weiterhin seinen Zugewiesenen).
+        For the case "a participant lost their link": generates a new personal token
+        and invalidates the old one. Also possible after the drawing (the participant
+        continues to see their assignee).
       operationId: regenerateParticipantLink
       parameters:
         - $ref: '#/components/parameters/AdminToken'
         - $ref: '#/components/parameters/ParticipantId'
       responses:
         '200':
-          description: Neuer persönlicher Link
+          description: New personal link
           content:
             application/json:
               schema:
@@ -151,20 +151,20 @@ paths:
   /api/groups/{adminToken}/draw:
     post:
       tags: [admin]
-      summary: Wichtel einmalig auslosen
+      summary: Draw Secret Santas (one-time)
       description: >
-        Erzeugt eine zufällige, fixpunktfreie Zuordnung (Derangement): jeder Teilnehmer
-        bekommt genau eine Person, niemand sich selbst; jeder ist genau einmal Geber
-        und genau einmal Empfänger. Die Ziehung ist unwiderruflich; ein zweiter Aufruf
-        liefert 409. Der Join-Link wird danach deaktiviert. Ab mindestens 2 Teilnehmern
-        möglich; bei 2 oder 3 Teilnehmern kann es gegenseitige Paare geben (A zieht B,
-        B zieht A) — das ist zulässig.
+        Generates a random, fixed-point-free assignment (derangement): every
+        participant gets exactly one person, nobody themselves; everyone is giver
+        exactly once and receiver exactly once. The drawing is irreversible; a
+        second call returns 409. The join link is deactivated afterwards. Requires
+        at least 2 participants; with 2 or 3 participants mutual pairs can occur
+        (A draws B, B draws A) — that is allowed.
       operationId: drawAssignments
       parameters:
         - $ref: '#/components/parameters/AdminToken'
       responses:
         '200':
-          description: Auslosung erfolgreich
+          description: Drawing successful
           content:
             application/json:
               schema:
@@ -182,7 +182,7 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictDrawn'
         '422':
-          description: Zu wenige Teilnehmer (weniger als 2)
+          description: Too few participants (fewer than 2)
           content:
             application/json:
               schema:
@@ -191,11 +191,11 @@ paths:
   /api/join/{joinToken}:
     post:
       tags: [join]
-      summary: Gruppe über Join-Link beitreten
+      summary: Join a group via join link
       description: >
-        Legt einen Teilnehmer an und gibt das Personal-Token genau einmal im Klartext
-        zurück (danach nur noch als Hash gespeichert, nicht wiederherstellbar).
-        Nach der Ziehung ist der Join-Link deaktiviert (409).
+        Creates a participant and returns the personal token exactly once in clear
+        text (afterwards stored only as a hash, not recoverable). After the drawing
+        the join link is deactivated (409).
       operationId: joinGroup
       parameters:
         - $ref: '#/components/parameters/JoinToken'
@@ -207,7 +207,7 @@ paths:
               $ref: '#/components/schemas/JoinRequest'
       responses:
         '201':
-          description: Beigetreten; persönlicher Link erstellt
+          description: Joined; personal link created
           content:
             application/json:
               schema:
@@ -215,7 +215,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Beitritt nicht mehr möglich (bereits ausgelost)
+          description: Joining no longer possible (already drawn)
           content:
             application/json:
               schema:
@@ -228,13 +228,13 @@ paths:
   /api/me/{personalToken}:
     get:
       tags: [me]
-      summary: Eigene Daten und Wünsche abrufen
+      summary: Get own data and wishes
       operationId: getMe
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
       responses:
         '200':
-          description: Eigene Teilnahmedaten
+          description: Own participant data
           content:
             application/json:
               schema:
@@ -243,16 +243,16 @@ paths:
           $ref: '#/components/responses/NotFound'
     delete:
       tags: [me]
-      summary: Selbst aus der Gruppe austragen
+      summary: Leave the group
       description: >
-        Eigenständiger Austrag vor der Ziehung (Personal-Token und Wünsche werden
-        gelöscht). Nach der Ziehung 409 — die Auslosung steht fest.
+        Self-service leave before the drawing (personal token and wishes are
+        deleted). After the drawing 409 — the assignment is fixed.
       operationId: leaveGroup
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
       responses:
         '204':
-          description: Ausgetreten
+          description: Left the group
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
@@ -261,7 +261,10 @@ paths:
   /api/me/{personalToken}/wishes:
     post:
       tags: [me]
-      summary: Wunsch hinzufügen
+      summary: Add a wish
+      description: >
+        Only before the drawing. After the drawing 409 — wishes are frozen,
+        since the assigned Secret Santa can already see them.
       operationId: addWish
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
@@ -273,20 +276,29 @@ paths:
               $ref: '#/components/schemas/WishRequest'
       responses:
         '201':
-          description: Wunsch erstellt
+          description: Wish created
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Wish'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already drawn — wishes are frozen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           $ref: '#/components/responses/ValidationError'
 
   /api/me/{personalToken}/wishes/{wishId}:
     put:
       tags: [me]
-      summary: Wunsch ändern oder umsortieren
+      summary: Change or reorder a wish
+      description: >
+        Only before the drawing. After the drawing 409 — wishes are frozen,
+        since the assigned Secret Santa can already see them.
       operationId: updateWish
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
@@ -299,41 +311,56 @@ paths:
               $ref: '#/components/schemas/WishRequest'
       responses:
         '200':
-          description: Wunsch aktualisiert
+          description: Wish updated
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Wish'
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already drawn — wishes are frozen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '422':
           $ref: '#/components/responses/ValidationError'
     delete:
       tags: [me]
-      summary: Wunsch löschen
+      summary: Delete a wish
+      description: >
+        Only before the drawing. After the drawing 409 — wishes are frozen,
+        since the assigned Secret Santa can already see them.
       operationId: deleteWish
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
         - $ref: '#/components/parameters/WishId'
       responses:
         '204':
-          description: Wunsch gelöscht
+          description: Wish deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '409':
+          description: Already drawn — wishes are frozen
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 
   /api/me/{personalToken}/assignee:
     get:
       tags: [me]
-      summary: Zugewiesene Person und deren Wünsche abrufen
+      summary: Get the assigned person and their wishes
       description: >
-        Nur nach erfolgter Auslosung. Vor der Ziehung 409. Server prüft, dass der
-        Anfragende selbst Teilnehmer der ausgelosten Gruppe ist.
+        Only after the drawing has taken place. Before the drawing 409. The server
+        verifies that the requester is a participant of the drawn group.
       operationId: getAssignee
       parameters:
         - $ref: '#/components/parameters/PersonalToken'
       responses:
         '200':
-          description: Die beschenkte Person mit deren Wünschen
+          description: The person to gift, with their wishes
           content:
             application/json:
               schema:
@@ -341,7 +368,7 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Noch nicht ausgelost
+          description: Not drawn yet
           content:
             application/json:
               schema:
@@ -356,7 +383,7 @@ components:
       schema:
         type: string
         pattern: '^[A-Za-z0-9_-]{43}$'
-      description: Admin-Token aus der URL (/g/{adminToken})
+      description: Admin token from the URL (/g/{adminToken})
     JoinToken:
       name: joinToken
       in: path
@@ -364,7 +391,7 @@ components:
       schema:
         type: string
         pattern: '^[A-Za-z0-9_-]{43}$'
-      description: Join-Token aus der geteilten Beitritts-URL (/join/{joinToken})
+      description: Join token from the shared join URL (/join/{joinToken})
     PersonalToken:
       name: personalToken
       in: path
@@ -372,7 +399,7 @@ components:
       schema:
         type: string
         pattern: '^[A-Za-z0-9_-]{43}$'
-      description: Personal-Token des Teilnehmers aus der URL (/p/{personalToken})
+      description: Participant's personal token from the URL (/p/{personalToken})
     ParticipantId:
       name: participantId
       in: path
@@ -390,25 +417,25 @@ components:
 
   responses:
     NotFound:
-      description: Unbekannter oder ungültiger Token bzw. Ressource (einheitliche Meldung)
+      description: Unknown or invalid token respectively resource (uniform message)
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     ConflictDrawn:
-      description: Aktion nicht möglich, weil die Gruppe bereits ausgelost wurde
+      description: Action not possible because the group has already been drawn
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     ValidationError:
-      description: Validierungsfehler
+      description: Validation error
       content:
         application/json:
           schema:
             $ref: '#/components/schemas/Error'
     RateLimited:
-      description: Zu viele Anfragen (Rate-Limit)
+      description: Too many requests (rate limit)
       content:
         application/json:
           schema:
@@ -422,11 +449,11 @@ components:
         code:
           type: string
           description: >
-            Maschinenlesbarer Fehlercode, z.B. NOT_FOUND, ALREADY_DRAWN,
+            Machine-readable error code, e.g. NOT_FOUND, ALREADY_DRAWN,
             RATE_LIMITED, VALIDATION
         message:
           type: string
-          description: Menschliche Fehlermeldung (deutsch)
+          description: Human-readable error message (English)
 
     CreateGroupRequest:
       type: object
@@ -436,18 +463,18 @@ components:
           type: string
           minLength: 1
           maxLength: 100
-          example: Weihnachten 2026
+          example: Christmas 2026
         description:
           type: string
           maxLength: 2000
-          description: Kleiner Info-Text an alle Teilnehmer
-          example: "Wie jedes Jahr: Budget 30 Euro. Ausgelost wird am 20. Dezember."
+          description: Short info text for all participants
+          example: "As every year: budget 30 euros. Drawing takes place on December 20."
         drawDate:
           type: string
           format: date
           description: >
-            Zieldatum, an dem der Admin die Auslosung per Knopfdruck vornehmen will.
-            Rein informativ — die Auslosung erfolgt manuell durch den Admin.
+            Target date on which the admin wants to trigger the drawing via button.
+            Purely informational — the drawing is triggered manually by the admin.
 
     UpdateGroupRequest:
       type: object
@@ -471,16 +498,16 @@ components:
           $ref: '#/components/schemas/AdminGroupView'
         adminToken:
           type: string
-          description: Klartext, genau einmal zurückgegeben — nicht wiederherstellbar
+          description: Clear text, returned exactly once — not recoverable
         adminUrl:
           type: string
-          description: Fertige Admin-URL (/g/{adminToken})
+          description: Ready-made admin URL (/g/{adminToken})
         joinToken:
           type: string
-          description: Klartext; vom Admin an alle geteilt werden
+          description: Clear text; to be shared by the admin with everyone
         joinUrl:
           type: string
-          description: Fertige Beitritts-URL (/join/{joinToken})
+          description: Ready-made join URL (/join/{joinToken})
 
     AdminGroupView:
       type: object
@@ -502,13 +529,13 @@ components:
           type: string
           format: date-time
           nullable: true
-          description: null = noch nicht ausgelost
+          description: null = not drawn yet
         joinUrl:
           type: string
           description: >
-            Join-URL bleibt für den Admin jederzeit abrufbar (der Link ist zum Teilen
-            gedacht, muss also rekonstruierbar sein — im Gegensatz zu Admin- und
-            Personal-Tokens).
+            Join URL remains retrievable for the admin at any time (the link is
+            meant to be shared, so it must be reconstructable — in contrast to
+            admin and personal tokens).
         participants:
           type: array
           items:
@@ -545,10 +572,10 @@ components:
           $ref: '#/components/schemas/Participant'
         personalToken:
           type: string
-          description: Klartext, genau einmal zurückgegeben — nicht wiederherstellbar
+          description: Clear text, returned exactly once — not recoverable
         personalUrl:
           type: string
-          description: Fertige persönliche URL (/p/{personalToken})
+          description: Ready-made personal URL (/p/{personalToken})
 
     PersonalLinkResponse:
       type: object
@@ -570,13 +597,13 @@ components:
           type: string
           minLength: 1
           maxLength: 500
-          example: Gut durchdachtes Grillzubehör
+          example: Well-thought-out grilling accessories
         position:
           type: integer
           minimum: 0
           description: >
-            Reihenfolge (0 = erstes). Ohne Angabe: hinten anfügen. Zum Umsortieren
-            Wunsch mit neuer Position per PUT aktualisieren.
+            Order (0 = first). If omitted: append at the end. To reorder, update
+            the wish with a new position via PUT.
 
     Wish:
       type: object
@@ -606,7 +633,7 @@ components:
           nullable: true
         drawn:
           type: boolean
-          description: false = Wichtelei läuft noch, true = Auslosung ist erfolgt
+          description: false = drawing still pending, true = drawing has taken place
         drawnAt:
           type: string
           format: date-time
@@ -624,7 +651,7 @@ components:
       properties:
         name:
           type: string
-          description: Name des Zugewiesenen (die Person, die man beschenkt)
+          description: Name of the assigned person (the one you gift)
         wishes:
           type: array
           items:

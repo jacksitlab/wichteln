@@ -22,5 +22,5 @@ def install_handlers(app: FastAPI) -> None:
     async def handle_validation(request: Request, exc: RequestValidationError):
         return JSONResponse(
             status_code=422,
-            content={"code": "VALIDATION", "message": "Eingabe ungültig."},
+            content={"code": "VALIDATION", "message": "Invalid input."},
         )

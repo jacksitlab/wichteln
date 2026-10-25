@@ -1,4 +1,38 @@
 import { useEffect, useState } from 'react'
+import { useT, type Language } from '../i18n'
+
+/** Language switch (DE | EN), fixed top-right. Persisted in sessionStorage. */
+export function LanguageSwitch() {
+  const { lang, setLang } = useT()
+  const options: Language[] = ['de', 'en']
+  return (
+    <div style={{
+      position: 'fixed', top: 12, right: 14, zIndex: 40,
+      display: 'flex', gap: 4,
+      background: 'rgba(18, 32, 25, 0.85)',
+      border: '1px solid var(--border)',
+      borderRadius: 999,
+      padding: 3,
+    }}>
+      {options.map((opt) => (
+        <button
+          key={opt}
+          onClick={() => setLang(opt)}
+          style={{
+            background: lang === opt ? 'var(--gold)' : 'transparent',
+            color: lang === opt ? '#16281d' : 'var(--fg-muted)',
+            border: 'none', borderRadius: 999,
+            fontSize: 12, fontWeight: 600, cursor: 'pointer',
+            padding: '3px 10px',
+            textTransform: 'uppercase',
+          }}
+        >
+          {opt}
+        </button>
+      ))}
+    </div>
+  )
+}
 
 const URL_RE = /(https?:\/\/[^\s<>"']+)/g
 
@@ -24,13 +58,14 @@ export function WishText({ text }: { text: string }) {
   )
 }
 
-/** Kopieren-Button mit "Kopiert!"-Feedback. */
+/** Copy button with feedback. */
 export function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false)
+  const { t } = useT()
   useEffect(() => {
     if (!copied) return
-    const t = setTimeout(() => setCopied(false), 2000)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setCopied(false), 2000)
+    return () => clearTimeout(timer)
   }, [copied])
   return (
     <button
@@ -50,7 +85,7 @@ export function CopyButton({ text }: { text: string }) {
         setCopied(true)
       }}
     >
-      {copied ? 'Kopiert!' : 'Kopieren'}
+      {copied ? t('copied') : t('copy')}
     </button>
   )
 }
@@ -65,9 +100,9 @@ export function LinkBox({ url }: { url: string }) {
   )
 }
 
-/** Bestätigungs-Dialog (z.B. für die unwiderrufliche Auslosung). */
+/** Confirmation dialog (e.g. for the irreversible drawing). */
 export function ConfirmDialog({
-  title, text, confirmLabel = 'Bestätigen', cancelLabel = 'Abbrechen',
+  title, text, confirmLabel, cancelLabel,
   onConfirm, onCancel, busy = false,
 }: {
   title: string
@@ -78,6 +113,7 @@ export function ConfirmDialog({
   onCancel: () => void
   busy?: boolean
 }) {
+  const { t } = useT()
   return (
     <div className="dialog-backdrop" onClick={busy ? undefined : onCancel}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
@@ -85,10 +121,10 @@ export function ConfirmDialog({
         <p>{text}</p>
         <div className="row">
           <button className="btn ghost" onClick={onCancel} disabled={busy}>
-            {cancelLabel}
+            {cancelLabel ?? t('cancel')}
           </button>
           <button className="btn" onClick={onConfirm} disabled={busy}>
-            {busy ? 'Bitte warten …' : confirmLabel}
+            {busy ? '…' : (confirmLabel ?? t('save'))}
           </button>
         </div>
       </div>

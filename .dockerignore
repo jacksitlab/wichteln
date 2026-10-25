@@ -1,0 +1,9 @@
+web/node_modules
+web/dist
+server/.venv
+server/.pytest_cache
+server/data
+sketches
+.git
+**/__pycache__
+*.db

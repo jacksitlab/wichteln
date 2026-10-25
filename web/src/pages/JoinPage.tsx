@@ -4,8 +4,10 @@ import { postJoin } from '../api'
 import { ApiError } from '../types'
 import { LinkBox } from '../components/Widgets'
 import { absUrl } from '../urls'
+import { useT } from '../i18n'
 
 export default function JoinPage() {
+  const { t } = useT()
   const { joinToken = '' } = useParams()
   const [name, setName] = useState('')
   const [busy, setBusy] = useState(false)
@@ -19,7 +21,7 @@ export default function JoinPage() {
     try {
       setJoined(await postJoin(joinToken, name.trim()))
     } catch (err) {
-      setError(err instanceof ApiError ? err.message : 'Server nicht erreichbar.')
+      setError(err instanceof ApiError ? err.localizedMessage(t) : t('error_server'))
     } finally {
       setBusy(false)
     }
@@ -29,27 +31,21 @@ export default function JoinPage() {
     return (
       <div className="wrap">
         <header className="page">
-          <h1 className="page-title">Willkommen, {joined.participant.name}!</h1>
-          <p className="sub">Du bist dabei. Jetzt deinen Link sichern.</p>
+          <h1 className="page-title">{t('join_done_title', { name: joined.participant.name })}</h1>
+          <p className="sub">{t('join_done_sub')}</p>
         </header>
 
-        <div className="warn">
-          <b>Wichtig:</b> Dieser persönliche Link wird <b>nie wieder angezeigt</b> —
-          es gibt keine Anmeldung, über die du ihn wiederfindest.
-          Setze ein Lesezeichen oder kopiere ihn jetzt!
-        </div>
+        <div className="warn">{t('join_warn')}</div>
 
         <div className="card">
-          <h2 className="section-title">Dein persönlicher Link</h2>
+          <h2 className="section-title">{t('join_your_link')}</h2>
           <LinkBox url={absUrl(joined.personalUrl)} />
         </div>
 
         <div className="card" style={{ textAlign: 'center' }}>
-          <p className="muted" style={{ marginBottom: 12 }}>
-            Über diesen Link trägst du deine Wünsche ein — und siehst nach der Auslosung, wen du beschenkst.
-          </p>
+          <p className="muted" style={{ marginBottom: 12 }}>{t('join_continue')}</p>
           <Link to={`/p/${joined.personalToken}`} className="btn" style={{ textDecoration: 'none' }}>
-            Wünsche eintragen
+            {t('join_next')}
           </Link>
         </div>
       </div>
@@ -60,23 +56,21 @@ export default function JoinPage() {
     <div className="wrap">
       <header className="page">
         <div className="flakes">{'\u2744\u2744\u2744'}</div>
-        <h1 className="page-title">Wichteln</h1>
-        <p className="sub">Du wurdest zu einer Wichtelrunde eingeladen</p>
+        <h1 className="page-title">{t('join_title')}</h1>
+        <p className="sub">{t('join_sub')}</p>
       </header>
 
       <div className="card">
-        <h2 className="section-title">Dein Name</h2>
-        <p className="muted" style={{ marginBottom: 6 }}>
-          Unter diesem Namen sehen dich die anderen.
-        </p>
+        <h2 className="section-title">{t('join_name_label')}</h2>
+        <p className="muted" style={{ marginBottom: 6 }}>{t('join_name_hint')}</p>
         <form onSubmit={submit} className="add" style={{ marginTop: 12 }}>
           <input
             type="text" value={name} maxLength={60} required autoFocus
-            placeholder="z.B. Michael"
+            placeholder={t('join_name_placeholder')}
             onChange={(e) => setName(e.target.value)}
           />
           <button className="btn" type="submit" disabled={busy || !name.trim()}>
-            {busy ? '…' : 'Beitreten'}
+            {busy ? '…' : t('join_submit')}
           </button>
         </form>
         {error && <p className="warn">{error}</p>}

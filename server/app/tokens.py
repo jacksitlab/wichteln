@@ -2,7 +2,7 @@ import hashlib
 import re
 import secrets
 
-# 32 zufällige Bytes, base64url-kodiert -> immer 43 Zeichen URL-sicher
+# 32 random bytes, base64url-encoded -> always 43 URL-safe characters
 TOKEN_RE = re.compile(r"^[A-Za-z0-9_-]{43}$")
 
 
@@ -11,5 +11,5 @@ def new_token() -> str:
 
 
 def token_hash(token: str) -> str:
-    """Tokens liegen in der DB nur als SHA-256-Hash (Admin- und Personal-Token)."""
+    """Tokens are stored in the DB as SHA-256 hashes only (admin and personal tokens)."""
     return hashlib.sha256(token.encode("utf-8")).hexdigest()

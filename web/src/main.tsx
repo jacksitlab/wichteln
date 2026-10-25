@@ -8,6 +8,8 @@ import AdminPage from './pages/AdminPage'
 import JoinPage from './pages/JoinPage'
 import ParticipantPage from './pages/ParticipantPage'
 import { Snowfall, ChristmasTree } from './components/Decorations'
+import { LanguageProvider } from './i18n'
+import { LanguageSwitch } from './components/Widgets'
 
 const router = createBrowserRouter([
   { path: '/', element: <HomePage /> },
@@ -19,8 +21,11 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <Snowfall />
-    <ChristmasTree />
-    <RouterProvider router={router} />
+    <LanguageProvider>
+      <Snowfall />
+      <ChristmasTree />
+      <LanguageSwitch />
+      <RouterProvider router={router} />
+    </LanguageProvider>
   </React.StrictMode>,
 )

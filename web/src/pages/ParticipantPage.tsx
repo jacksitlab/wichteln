@@ -1,20 +1,40 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { addWish, deleteWish, getAssignee, getMe, leaveGroup } from '../api'
-import type { Assignee, MeResponse } from '../types'
+import type { ApiErrorBody, Assignee, MeResponse } from '../types'
 import { ApiError } from '../types'
 import { ConfirmDialog, Toast, WishText } from '../components/Widgets'
 import { Snowman } from '../components/Decorations'
+import { useT } from '../i18n'
+
+/**
+ * Error state is kept as structured data (not pre-rendered text), so the
+ * message re-localizes when the language is switched.
+ */
+type ErrorState =
+  | { kind: 'api'; body: ApiErrorBody }
+  | { kind: 'left' }
+  | { kind: 'server' }
 
 export default function ParticipantPage() {
+  const { t, locale } = useT()
   const { personalToken = '' } = useParams()
   const [me, setMe] = useState<MeResponse | null>(null)
   const [assignee, setAssignee] = useState<Assignee | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<ErrorState | null>(null)
   const [newWish, setNewWish] = useState('')
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [showLeave, setShowLeave] = useState(false)
+
+  // Localize at render time (reacts to language switches)
+  const errorMessage = !error
+    ? null
+    : error.kind === 'api'
+      ? new ApiError(0, error.body).localizedMessage(t)
+      : error.kind === 'left'
+        ? t('left_message')
+        : t('error_server')
 
   useEffect(() => {
     getMe(personalToken)
@@ -23,23 +43,25 @@ export default function ParticipantPage() {
         if (m.drawn) {
           try {
             setAssignee(await getAssignee(personalToken))
-          } catch { /* Ziehung läuft gerade erst */ }
+          } catch { /* drawing just started */ }
         }
       })
-      .catch((err) => setError(err instanceof ApiError ? err.message : 'Server nicht erreichbar.'))
+      .catch((err) => setError(
+        err instanceof ApiError ? { kind: 'api', body: err.body } : { kind: 'server' },
+      ))
   }, [personalToken])
 
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 2500)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setToast(null), 2500)
+    return () => clearTimeout(timer)
   }, [toast])
 
   const refresh = useCallback(async () => {
     const m = await getMe(personalToken)
     setMe(m)
     if (m.drawn) {
-      try { setAssignee(await getAssignee(personalToken)) } catch { /* noch nicht */ }
+      try { setAssignee(await getAssignee(personalToken)) } catch { /* not yet */ }
     }
   }, [personalToken])
 
@@ -52,7 +74,7 @@ export default function ParticipantPage() {
       setNewWish('')
       await refresh()
     } catch (err) {
-      setToast(err instanceof ApiError ? err.message : 'Fehler')
+      setToast(err instanceof ApiError ? err.localizedMessage(t) : t('error_generic'))
     } finally {
       setBusy(false)
     }
@@ -63,7 +85,7 @@ export default function ParticipantPage() {
       await deleteWish(personalToken, id)
       await refresh()
     } catch (err) {
-      setToast(err instanceof ApiError ? err.message : 'Fehler')
+      setToast(err instanceof ApiError ? err.localizedMessage(t) : t('error_generic'))
     }
   }
 
@@ -71,64 +93,68 @@ export default function ParticipantPage() {
     try {
       await leaveGroup(personalToken)
       setShowLeave(false)
-      setError('Du hast die Wichtelrunde verlassen.')
+      setError({ kind: 'left' })
     } catch (err) {
-      setToast(err instanceof ApiError ? err.message : 'Fehler')
+      setToast(err instanceof ApiError ? err.localizedMessage(t) : t('error_generic'))
       setShowLeave(false)
     }
   }
 
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="wrap">
-        <div className="status">{error}</div>
+        <div className="status">{errorMessage}</div>
         <p className="muted" style={{ textAlign: 'center', marginTop: 16 }}>
-          <Link to="/">Zur Startseite</Link>
+          <Link to="/">{t('to_homepage')}</Link>
         </p>
       </div>
     )
   }
-  if (!me) return <div className="wrap"><div className="status">Lädt …</div></div>
+  if (!me) return <div className="wrap"><div className="status">{t('loading')}</div></div>
+
+  const drawDateText = me.drawDate
+    ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
+        .format(new Date(me.drawDate + 'T00:00:00'))
+    : null
 
   return (
     <div className="wrap">
       <header className="page">
         <div className="flakes">{'\u2744\u2744\u2744'}</div>
         <h1 className="page-title">{me.groupTitle}</h1>
-        <p className="sub">Hallo, {me.participant.name}!</p>
+        <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
 
       {me.drawn ? (
-        <div className="status">{'\u2714'} Die Wichtel sind ausgelost!</div>
+        <div className="status">{t('status_drawn')}</div>
       ) : (
         <div className="status">
-          {'\u23F3'}
-          {me.drawDate
-            ? <> Auslosung am {new Date(me.drawDate + 'T00:00:00').toLocaleDateString('de-DE', { day: 'numeric', month: 'long' })} — trage bis dahin deine Wünsche ein.</>
-            : ' Die Auslosung steht noch aus — trage schon jetzt deine Wünsche ein.'}
+          {drawDateText
+            ? t('status_pending_date', { date: drawDateText })
+            : t('status_pending')}
         </div>
       )}
 
       {me.groupDescription ? (
         <div className="card">
           <Snowman />
-          <h2 className="section-title">Info</h2>
+          <h2 className="section-title">{t('info_title')}</h2>
           <p style={{ fontSize: 15 }}>{me.groupDescription}</p>
         </div>
       ) : (
         <div className="card">
           <Snowman />
-          <h2 className="section-title">Info</h2>
-          <p className="muted">Keine Beschreibung vom Admin hinterlegt.</p>
+          <h2 className="section-title">{t('info_title')}</h2>
+          <p className="muted">{t('info_no_description')}</p>
         </div>
       )}
 
       {assignee && (
         <div className="card assignee">
-          <h2 className="section-title">Du wichtelst für</h2>
+          <h2 className="section-title">{t('assignee_title')}</h2>
           <div className="name">{assignee.name}</div>
           {assignee.wishes.length === 0 ? (
-            <p className="muted">{assignee.name} hat noch keine Wünsche eingetragen.</p>
+            <p className="muted">{t('assignee_no_wishes', { name: assignee.name })}</p>
           ) : (
             <div>
               {assignee.wishes.map((w) => (
@@ -143,17 +169,15 @@ export default function ParticipantPage() {
 
       {!me.drawn && (
         <div className="card">
-          <h2 className="section-title">Deine Wünsche</h2>
-          <p className="muted" style={{ marginBottom: 6 }}>
-            Nur du und dein Wichtel sehen diese Liste.
-          </p>
+          <h2 className="section-title">{t('wishes_title')}</h2>
+          <p className="muted" style={{ marginBottom: 6 }}>{t('wishes_privacy_hint')}</p>
           {me.wishes.length === 0 && (
-            <p className="muted" style={{ padding: '8px 0' }}>Noch keine Wünsche eingetragen.</p>
+            <p className="muted" style={{ padding: '8px 0' }}>{t('wishes_empty')}</p>
           )}
           {me.wishes.map((w) => (
             <div className="wish" key={w.id}>
               <span className="n">{w.position + 1}.</span> <WishText text={w.text} />
-              <button className="icon" title="Löschen" onClick={() => removeWish(w.id)}>
+              <button className="icon" title={t('delete')} onClick={() => removeWish(w.id)}>
                 {'\u2715'}
               </button>
             </div>
@@ -161,11 +185,11 @@ export default function ParticipantPage() {
           <form className="add" onSubmit={submitWish}>
             <input
               type="text" value={newWish} maxLength={500}
-              placeholder="Noch ein Wunsch …"
+              placeholder={t('wish_placeholder')}
               onChange={(e) => setNewWish(e.target.value)}
             />
             <button className="btn" type="submit" disabled={busy || !newWish.trim()}>
-              Hinzufügen
+              {t('wish_add')}
             </button>
           </form>
         </div>
@@ -174,16 +198,16 @@ export default function ParticipantPage() {
       {!me.drawn && (
         <p className="muted" style={{ textAlign: 'center', marginTop: 24 }}>
           <button className="btn danger" onClick={() => setShowLeave(true)}>
-            Aus der Wichtelrunde austreten
+            {t('leave_button')}
           </button>
         </p>
       )}
 
       {showLeave && (
         <ConfirmDialog
-          title="Austreten?"
-          text="Deine Wünsche und dein Zugang werden gelöscht. Du kannst mit dem Beitritts-Link wieder beitreten, sofern die Auslosung noch nicht stattgefunden hat."
-          confirmLabel="Austreten"
+          title={t('leave_dialog_title')}
+          text={t('leave_dialog_text')}
+          confirmLabel={t('leave_dialog_confirm')}
           onConfirm={leave}
           onCancel={() => setShowLeave(false)}
         />

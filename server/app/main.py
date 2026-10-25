@@ -31,7 +31,7 @@ def create_app(settings, store_factory):
 
 
 def create_app_from_env():
-    """Einstiegspunkt für uvicorn (app.main:create_app_from_env)."""
+    """Entrypoint for uvicorn (app.main:create_app_from_env)."""
     from .config import settings_from_env
     from .db import init_db, open_conn
     from .store import Store

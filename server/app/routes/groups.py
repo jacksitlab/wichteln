@@ -7,7 +7,7 @@ from ..ratelimit import create_limiter
 from ..store import Store
 from ..util import iso_today_or_none
 
-TOKEN_404 = "Link ungültig oder unbekannt."
+TOKEN_404 = "Invalid or unknown link."
 
 
 def register(app):
@@ -54,7 +54,7 @@ def register(app):
         client = request.client.host if request.client else "unknown"
         if not create_limiter.allow(client):
             raise ApiError(429, "RATE_LIMITED",
-                           "Zu viele Anfragen. Bitte später erneut versuchen.")
+                           "Too many requests. Please try again later.")
         s = store(request)
         admin_token = new_token()
         join_token = new_token()

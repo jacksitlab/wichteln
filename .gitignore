@@ -1,0 +1,19 @@
+# Python
+server/.venv/
+server/data/
+**/__pycache__/
+*.pyc
+
+# Node
+web/node_modules/
+web/dist/
+
+# SQLite / lokale Daten
+*.db
+*.db-shm
+*.db-wal
+
+# Editor / OS
+.idea/
+.vscode/
+.DS_Store

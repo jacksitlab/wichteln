@@ -1,8 +1,9 @@
-"""Zentrale Store-Schicht: alle SQL-Zugriffe des Backends.
+"""Central store layer: all SQL access of the backend.
 
-Join-Token wird bewusst im Klartext gespeichert (Join-Link muss für den Admin
-jederzeit rekonstruierbar sein — siehe openapi.yaml, AdminGroupView.joinUrl).
-Admin- und Personal-Token liegen nur als SHA-256-Hash vor.
+The join token is deliberately stored in clear text (the join link must be
+reconstructable for the admin at any time — see openapi.yaml,
+AdminGroupView.joinUrl). Admin and personal tokens are stored as SHA-256
+hashes only.
 """
 import sqlite3
 import uuid
@@ -22,7 +23,7 @@ class Store:
     def __init__(self, conn: sqlite3.Connection):
         self.conn = conn
 
-    # ---------- Gruppen ----------
+    # ---------- groups ----------
 
     def create_group(self, title: str, description: str | None,
                      draw_date: str | None, admin_token_h: str,
@@ -39,7 +40,7 @@ class Store:
         row = self.conn.execute(
             "SELECT * FROM groups WHERE admin_token_h = ?", (admin_token_h,)
         ).fetchone()
-        return row  # Token-Wert selbst wird nicht benutzt; einheitliches 404 regelt der Caller
+        return row  # the token value itself is unused; the caller handles the uniform 404
 
     def group_by_join(self, join_token: str) -> sqlite3.Row | None:
         return self.conn.execute(
@@ -61,7 +62,7 @@ class Store:
             "UPDATE groups SET drawn_at = ? WHERE id = ?", (drawn_at, gid)
         )
 
-    # ---------- Teilnehmer ----------
+    # ---------- participants ----------
 
     def add_participant(self, gid: str, name: str, personal_token_h: str) -> sqlite3.Row:
         pid = _uuid()
@@ -100,7 +101,7 @@ class Store:
             (new_token_h, pid),
         )
 
-    # ---------- Wünsche ----------
+    # ---------- wishes ----------
 
     def add_wish(self, pid: str, text: str, position: int) -> sqlite3.Row:
         wid = _uuid()
@@ -137,7 +138,7 @@ class Store:
         return row[0]
 
     def compact_positions(self, pid: str) -> None:
-        """Positionen auf 0..n-1 verdichten (nach Update/Löschen)."""
+        """Compact positions to 0..n-1 (after update/delete)."""
         rows = self.wishes_of(pid)
         for new_pos, row in enumerate(rows):
             if row["position"] != new_pos:
@@ -145,7 +146,7 @@ class Store:
                     "UPDATE wishes SET position = ? WHERE id = ?", (new_pos, row["id"])
                 )
 
-    # ---------- Ziehung ----------
+    # ---------- drawing ----------
 
     def assignments_of_group(self, gid: str) -> list[sqlite3.Row]:
         return self.conn.execute(
