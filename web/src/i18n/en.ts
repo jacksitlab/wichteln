@@ -58,7 +58,8 @@ export const en: Record<TranslationKey, string> = {
   // Participant
   participant_greeting: 'Hello, {name}!',
   status_drawn: '✔ The Santas have been drawn!',
-  status_pending_date: '⏳ Drawing on {date} — add your wishes until then.',
+  status_pending_date: '⏳ Drawing on ',
+  status_pending_date_suffix: ' — add your wishes until then.',
   status_pending: '⏳ The drawing is still pending — you can add your wishes now.',
   info_title: 'Info',
   info_no_description: 'No description provided by the admin.',

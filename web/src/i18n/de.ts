@@ -59,7 +59,8 @@ export const de = {
   // Participant
   participant_greeting: 'Hallo, {name}!',
   status_drawn: '✔ Die Wichtel sind ausgelost!',
-  status_pending_date: '⏳ Auslosung am {date} — trage bis dahin deine Wünsche ein.',
+  status_pending_date: '⏳ Auslosung am ',
+  status_pending_date_suffix: ' — trage bis dahin deine Wünsche ein.',
   status_pending: '⏳ Die Auslosung steht noch aus — trage schon jetzt deine Wünsche ein.',
   info_title: 'Info',
   info_no_description: 'Keine Beschreibung vom Admin hinterlegt.',

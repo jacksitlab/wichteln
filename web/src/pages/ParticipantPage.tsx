@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, type ReactNode } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { addWish, deleteWish, getAssignee, getMe, leaveGroup } from '../api'
 import type { ApiErrorBody, Assignee, MeResponse } from '../types'
@@ -118,6 +118,19 @@ export default function ParticipantPage() {
         .format(new Date(me.drawDate + 'T00:00:00'))
     : null
 
+  // Statuszeile direkt bei drawDateText zusammensetzen: Datum fett (via <strong>)
+  const statusLine: ReactNode = (() => {
+    if (me.drawn) return t('status_drawn')
+    if (!drawDateText) return t('status_pending')
+    return (
+      <>
+        {t('status_pending_date')}
+        <strong>{drawDateText}</strong>
+        {t('status_pending_date_suffix')}
+      </>
+    )
+  })()
+
   return (
     <div className="wrap">
       <header className="page">
@@ -126,15 +139,7 @@ export default function ParticipantPage() {
         <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
 
-      {me.drawn ? (
-        <div className="status">{t('status_drawn')}</div>
-      ) : (
-        <div className="status">
-          {drawDateText
-            ? t('status_pending_date', { date: drawDateText })
-            : t('status_pending')}
-        </div>
-      )}
+      <div className="status"><p>{statusLine}</p></div>
 
       {me.groupDescription ? (
         <div className="card">
