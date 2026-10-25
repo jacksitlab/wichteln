@@ -126,4 +126,8 @@ export const en: Record<TranslationKey, string> = {
   err_VALIDATION: 'Invalid input.',
   err_TOO_FEW_PARTICIPANTS: 'At least 2 participants are required.',
   err_DRAW_UNSOLVABLE: 'No valid assignment possible with the configured exclusions. Please adjust the exclusions.',
+
+  // Footer
+  footer_privacy: 'This site stores only the essentials: name, wishes and group info — no cookies, no tracking, no third parties. The data lives on the family server and is deleted once the admin removes the group.',
+  footer_code: 'Source code on GitHub',
 }

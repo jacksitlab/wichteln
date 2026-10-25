@@ -125,8 +125,12 @@ export const de = {
   err_NOT_DRAWN: 'Die Auslosung steht noch aus.',
   err_RATE_LIMITED: 'Zu viele Anfragen. Bitte später erneut versuchen.',
   err_VALIDATION: 'Eingabe ungültig.',
-  err_TOO_FEW_PARTICIPANTS: 'Mindestens 2 Wichtel erforderlich.',
+  err_TOO_FEW_PARTICIPANTS: 'Mindestens 2 Teilnehmer erforderlich.',
   err_DRAW_UNSOLVABLE: 'Mit den konfigurierten Ausschlüssen ist keine gültige Zuteilung möglich. Bitte Ausschlüsse anpassen.',
+
+  // Footer
+  footer_privacy: 'Diese Seite speichert nur das Nötigste: Name, Wünsche und Gruppeninfos — ohne Cookies, ohne Tracking, ohne Dritte. Die Daten liegen auf dem Familien-Server und werden nach der Wichtelei gelöscht, sobald der Admin die Gruppe entfernt.',
+  footer_code: 'Quellcode auf GitHub',
 }
 
 export type TranslationKey = keyof typeof de

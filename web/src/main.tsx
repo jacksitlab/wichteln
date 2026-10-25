@@ -10,6 +10,7 @@ import JoinPage from './pages/JoinPage'
 import ParticipantPage from './pages/ParticipantPage'
 import { Snowfall, SnowCover, ChristmasTree } from './components/Decorations'
 import { MusicToggle } from './components/MusicToggle'
+import { Footer } from './components/Footer'
 import { LanguageProvider } from './i18n'
 import { LanguageSwitch } from './components/Widgets'
 
@@ -30,6 +31,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
       <MusicToggle />
       <LanguageSwitch />
       <RouterProvider router={router} />
+      <Footer />
     </LanguageProvider>
   </React.StrictMode>,
 )
