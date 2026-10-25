@@ -10,7 +10,7 @@ export function Footer() {
     <footer className="site-footer">
       <p>{t('footer_privacy')}</p>
       <p>
-        <a href="https://github.com/jacksitlab/wichtel" target="_blank" rel="noopener noreferrer">
+        <a href="https://github.com/jacksitlab/wichteln" target="_blank" rel="noopener noreferrer">
           {'\u2726'} {t('footer_code')}
         </a>
       </p>
