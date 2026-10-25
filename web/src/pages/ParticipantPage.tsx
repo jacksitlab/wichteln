@@ -202,7 +202,7 @@ export default function ParticipantPage() {
       )}
 
       {!me.drawn && (
-        <p className="muted" style={{ textAlign: 'center', marginTop: 24 }}>
+        <p className="muted" style={{ textAlign: 'center', marginTop: 24 , marginBottom: 160}}>
           <button className="btn danger" onClick={() => setShowLeave(true)}>
             {t('leave_button')}
           </button>

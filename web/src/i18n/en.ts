@@ -16,8 +16,8 @@ export const en: Record<TranslationKey, string> = {
   copy: 'Copy',
 
   // Home
-  home_sub: 'The family gift exchange — no registration required',
-  home_pitch: 'Create a Secret Santa round, share the join link with your family, add your wishes — and when the day comes, the Santas are drawn.',
+  home_sub: 'The gift exchange for family and friends — no registration required',
+  home_pitch: 'Create a Secret Santa round, share the join link, add your wishes — and when the day comes, the Santas are drawn.',
   home_create: 'Create a new round',
   home_link_hint: 'Received a link? Just open it directly.',
 
@@ -36,7 +36,7 @@ export const en: Record<TranslationKey, string> = {
   create_warn_admin: 'Important: The admin link will never be shown again. Bookmark it before leaving this page!',
   create_admin_link: 'Your admin link',
   create_admin_link_hint: 'For you only — this is how you manage the round.',
-  create_join_link: 'Join link for the family',
+  create_join_link: 'Join link for all participants',
   create_join_link_hint: 'Share this link with everyone who wants to participate.',
   create_continue: 'Everything saved? Then continue to the admin view.',
   create_to_admin: 'Go to the admin view',
@@ -50,7 +50,7 @@ export const en: Record<TranslationKey, string> = {
   join_submit: 'Join',
   join_done_title: 'Welcome, {name}!',
   join_done_sub: 'You are in. Now save your link.',
-  join_warn: 'Important: This personal link will never be shown again — there is no login to recover it. Bookmark it or copy it now!',
+  join_warn: 'Important: This personal link will never be shown again — there is no login to recover it. Bookmark it or copy it now! If you still loose it somehow, please ask your admin.',
   join_your_link: 'Your personal link',
   join_continue: 'Use this link to add your wishes — and after the drawing to see who you are gifting.',
   join_next: 'Add wishes',
