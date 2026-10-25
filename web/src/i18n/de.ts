@@ -51,7 +51,7 @@ export const de = {
   join_submit: 'Beitreten',
   join_done_title: 'Willkommen, {name}!',
   join_done_sub: 'Du bist dabei. Jetzt deinen Link sichern.',
-  join_warn: 'Wichtig: Dieser persönliche Link wird nie wieder angezeigt — es gibt keine Anmeldung, über die du ihn wiederfindest. Setze ein Lesezeichen oder kopiere ihn jetzt!',
+  join_warn: 'Wichtig: Der Link zu deiner persönlichen Wichtelwebseite wird dir nur jetzt angezeigt. Kopiere oder speichere ihn dir jetzt. Solltest du ihn doch verlieren, frage bitte den Admin.',
   join_your_link: 'Dein persönlicher Link',
   join_continue: 'Über diesen Link trägst du deine Wünsche ein — und siehst nach der Auslosung, wen du beschenkst.',
   join_next: 'Wünsche eintragen',
