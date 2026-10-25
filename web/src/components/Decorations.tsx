@@ -65,6 +65,65 @@ export function StarHero() {
   )
 }
 
+/**
+ * Schneedecke am unteren Rand: wächst langsam an, als würde der
+ * Schneefall eine Decke bilden. Sanft gewellte Oberkante (mehrere
+ * überlagerte Sinus-Wellen, zufällig pro Mount); wächst in ~4 Minuten
+ * von 0 auf ~40px. Läuft komplett als CSS-Animation (transform), kein
+ * JS-Frame-Loop. Unter dem Inhalt (z-index 0), pointer-events: none.
+ */
+export function SnowCover() {
+  // Zufällige Wellenform einmalig erzeugen (stable über Re-Renders)
+  const [path] = useState(() => {
+    const rand = () => Math.random()
+    // Basis-Pfad: 5 überlagerte Wellen, perzentual über die Breite
+    const waves = Array.from({ length: 5 }, () => ({
+      amp: 3 + rand() * 6,       // Wellenhöhe in px
+      len: 120 + rand() * 280,   // Wellenlänge in px
+      phase: rand() * Math.PI * 2,
+    }))
+    return (x: number) => waves.reduce(
+      (h, w) => h + Math.sin(x / w.len * Math.PI * 2 + w.phase) * w.amp, 0)
+  })
+  // SVG-Path über Viewbox 0 0 1440 100 berechnen (skaliert mit)
+  const [d] = useState(() => {
+    const H = 100
+    const pts: string[] = []
+    for (let x = 0; x <= 1440; x += 8) {
+      const y = H - 28 + path(x)  // Oberkante um Mittellinie schwanken lassen
+      pts.push(`${x === 0 ? 'M' : 'L'}${x} ${y.toFixed(1)}`)
+    }
+    return pts.join(' ') + ` L1440 ${H} L0 ${H} Z`
+  })
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 1440 100"
+      preserveAspectRatio="none"
+      style={{
+        position: 'fixed', bottom: 0, left: 0,
+        width: '100vw', height: 'min(10vh, 90px)',
+        zIndex: 0, pointerEvents: 'none',
+      }}
+    >
+      {/* Schatten unter der Decke für Tiefe */}
+      <path d={d} fill="rgba(20, 38, 28, 0.25)" style={{ transform: 'translateY(4px)' }} />
+      {/* Die eigentliche Decke — wächst von unten hoch */}
+      <path d={d} fill="#f4ead6" className="snow-cover" />
+      <style>{`
+        .snow-cover {
+          transform-origin: bottom;
+          animation: cover-grow 240s ease-out forwards;
+        }
+        @keyframes cover-grow {
+          from { transform: scaleY(0); }
+          to   { transform: scaleY(1); }
+        }
+      `}</style>
+    </svg>
+  )
+}
+
 /** Weihnachtsbaum unten rechts (SVG, wie im Sketch A1). */
 export function ChristmasTree() {
   return (

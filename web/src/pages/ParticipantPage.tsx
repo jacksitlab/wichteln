@@ -139,7 +139,7 @@ export default function ParticipantPage() {
         <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
 
-      <div className="status">{statusLine}</div>
+      <div className="status"><p>{statusLine}</p></div>
 
       {me.groupDescription ? (
         <div className="card">

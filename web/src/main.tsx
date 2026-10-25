@@ -8,7 +8,8 @@ import CreatePage from './pages/CreatePage'
 import AdminPage from './pages/AdminPage'
 import JoinPage from './pages/JoinPage'
 import ParticipantPage from './pages/ParticipantPage'
-import { Snowfall, ChristmasTree } from './components/Decorations'
+import { Snowfall, SnowCover, ChristmasTree } from './components/Decorations'
+import { MusicToggle } from './components/MusicToggle'
 import { LanguageProvider } from './i18n'
 import { LanguageSwitch } from './components/Widgets'
 
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <LanguageProvider>
       <Snowfall />
+      <SnowCover />
       <ChristmasTree />
+      <MusicToggle />
       <LanguageSwitch />
       <RouterProvider router={router} />
     </LanguageProvider>

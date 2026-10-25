@@ -8,11 +8,12 @@ export function LanguageSwitch() {
   return (
     <div style={{
       position: 'fixed', top: 12, right: 14, zIndex: 40,
-      display: 'flex', gap: 4,
+      display: 'flex', gap: 4, alignItems: 'center',
       background: 'rgba(18, 32, 25, 0.85)',
       border: '1px solid var(--border)',
       borderRadius: 999,
       padding: 3,
+      height: 34, boxSizing: 'border-box',
     }}>
       {options.map((opt) => (
         <button
