@@ -1,5 +1,6 @@
 services:
   wichtel:
+    image: jacksitlab/wichtel:latest
     build: .
     container_name: wichtel
     restart: unless-stopped
