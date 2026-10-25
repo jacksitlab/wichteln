@@ -27,6 +27,23 @@ docker compose up -d
 Erreichbar unter `http://<host>:8000`. Die SQLite-Datenbank liegt im
 Docker-Volume `wichtel-data`.
 
+**Hinweis beim Update von einer älteren (Root-)Version:** Das bereits
+bestehende Volume `wichtel-data` gehört noch root; die App läuft jetzt als
+nicht-root-User und kann dann nicht schreiben. Einmalig den Besitz anpassen:
+
+```bash
+docker compose down
+docker volume rm wichtel_wichtel-data   # ODER: Besitz via Helper-Container ändern
+docker compose up -d                     # Volume wird frisch (als wichtel) angelegt
+```
+
+Wer die bisherigen Daten behalten will, vor dem Entfernen die Rechte
+korrigieren (User-ID im Container prüfen, meist 100):
+
+```bash
+docker run --rm -v wichtel_wichtel-data:/data alpine chown -R 100:100 /data
+```
+
 Hinter einem Reverse-Proxy die öffentliche URL setzen, damit die geteilten
 Links korrekt sind:
 
