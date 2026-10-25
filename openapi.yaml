@@ -152,13 +152,15 @@ paths:
     post:
       tags: [admin]
       summary: Draw Secret Santas (one-time)
-      description: >
-        Generates a random, fixed-point-free assignment (derangement): every
-        participant gets exactly one person, nobody themselves; everyone is giver
-        exactly once and receiver exactly once. The drawing is irreversible; a
-        second call returns 409. The join link is deactivated afterwards. Requires
-        at least 2 participants; with 2 or 3 participants mutual pairs can occur
-        (A draws B, B draws A) — that is allowed.
+      description: >-
+        Generates a random assignment where every participant gives exactly one
+        gift and receives exactly one gift. Nobody draws themselves, and all
+        exclusions configured by the admin are respected: giver A never draws
+        receiver B if (A, B) is excluded. If no valid assignment exists with the
+        configured exclusions, the drawing fails with 422 DRAW_UNSOLVABLE and
+        nothing is persisted. The drawing is irreversible; a second call returns
+        409. The join link is deactivated afterwards. Requires at least 2
+        participants; mutual pairs (A draws B, B draws A) are allowed.
       operationId: drawAssignments
       parameters:
         - $ref: '#/components/parameters/AdminToken'
@@ -182,11 +184,76 @@ paths:
         '409':
           $ref: '#/components/responses/ConflictDrawn'
         '422':
-          description: Too few participants (fewer than 2)
+          description: Too few participants (fewer than 2) or no valid assignment possible with the configured exclusions
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          examples:
+            tooFew:
+              summary: Fewer than 2 participants
+              value:
+                code: TOO_FEW_PARTICIPANTS
+                message: 'At least 2 participants are required.'
+            unsolvable:
+              summary: No valid assignment possible with the exclusions
+              value:
+                code: DRAW_UNSOLVABLE
+                message: 'No valid assignment possible with the configured exclusions.'
+
+  /api/groups/{adminToken}/exclusions:
+    get:
+      tags: [admin]
+      summary: List exclusions
+      operationId: listExclusions
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      responses:
+        '200':
+          description: All exclusions of the group
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exclusion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    put:
+      tags: [admin]
+      summary: Replace all exclusions
+      description: >-
+        Sets the complete list of exclusions (full replacement, idempotent):
+        giver A never draws receiver B for each {giverId, receiverId}. Exclusions
+        are one-directional only — excluding (A, B) does NOT exclude (B, A).
+        Self-exclusions (giver == receiver) and unknown participant IDs are
+        rejected with 422. Only possible before the drawing (afterwards 409).
+      operationId: replaceExclusions
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/ExclusionIn'
+      responses:
+        '200':
+          description: Stored exclusions (deduplicated, in storage order)
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Exclusion'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/ConflictDrawn'
+        '422':
+          $ref: '#/components/responses/ValidationError'
 
   /api/join/{joinToken}:
     post:
@@ -553,6 +620,36 @@ components:
         joinedAt:
           type: string
           format: date-time
+
+    ExclusionIn:
+      type: object
+      required: [giverId, receiverId]
+      properties:
+        giverId:
+          type: string
+          format: uuid
+          description: Participant who must not draw the receiver.
+        receiverId:
+          type: string
+          format: uuid
+          description: Participant whom the giver must not draw.
+
+    Exclusion:
+      type: object
+      required: [giverId, receiverId, giverName, receiverName]
+      properties:
+        giverId:
+          type: string
+          format: uuid
+        receiverId:
+          type: string
+          format: uuid
+        giverName:
+          type: string
+          description: Convenience copy of the giver's name (for admin UI display)
+        receiverName:
+          type: string
+          description: Convenience copy of the receiver's name (for admin UI display)
 
     JoinRequest:
       type: object

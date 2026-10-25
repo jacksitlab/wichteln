@@ -287,3 +287,118 @@ def test_rate_limit_on_group_creation(client):
     for _ in range(10):
         assert client.post("/api/groups", json={"title": "X"}).status_code == 201
     assert client.post("/api/groups", json={"title": "X"}).status_code == 429
+
+
+# ---------- Ausschlüsse (Admin) ----------
+
+def participant_ids(client, admin_token):
+    view = client.get(f"/api/groups/{admin_token}").json()
+    return [p["id"] for p in view["participants"]]
+
+
+def test_exclusions_put_get_replace(client):
+    group, _ = create_group(client, n_participants=3)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+
+    # initially empty
+    assert client.get(f"/api/groups/{at}/exclusions").json() == []
+
+    # set: P0 darf P1 nicht ziehen
+    resp = client.put(f"/api/groups/{at}/exclusions",
+                      json=[{"giverId": pids[0], "receiverId": pids[1]}])
+    assert resp.status_code == 200
+    body = resp.json()
+    assert len(body) == 1
+    assert body[0]["giverName"] == "P0" and body[0]["receiverName"] == "P1"
+
+    # GET liefert dieselbe Liste
+    assert client.get(f"/api/groups/{at}/exclusions").json() == body
+
+    # full replacement: alte weg, zwei neue (eine davon Duplikat -> dedup)
+    resp = client.put(f"/api/groups/{at}/exclusions", json=[
+        {"giverId": pids[0], "receiverId": pids[2]},
+        {"giverId": pids[0], "receiverId": pids[2]},
+        {"giverId": pids[2], "receiverId": pids[1]},
+    ])
+    assert resp.status_code == 200
+    assert len(resp.json()) == 2
+    # leeren mit []
+    assert len(client.put(f"/api/groups/{at}/exclusions", json=[]).json()) == 0
+
+
+def test_exclusions_validation(client):
+    group, _ = create_group(client, n_participants=2)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+    # self-exclusion
+    r = client.put(f"/api/groups/{at}/exclusions",
+                   json=[{"giverId": pids[0], "receiverId": pids[0]}])
+    assert r.status_code == 422
+    # unknown participant
+    r = client.put(f"/api/groups/{at}/exclusions",
+                   json=[{"giverId": pids[0], "receiverId": "nicht-vorhanden"}])
+    assert r.status_code == 422
+
+
+def test_draw_respects_exclusions(client):
+    """P0 darf P1 nicht ziehen. n=3 hat genau zwei Derangement-Zyklen;
+    der Ausschluss erzwingt 0->2, 1->0, 2->1 — vollständig deterministisch."""
+    group, tokens = create_group(client, n_participants=3)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+    client.put(f"/api/groups/{at}/exclusions",
+               json=[{"giverId": pids[0], "receiverId": pids[1]}])
+    assert client.post(f"/api/groups/{at}/draw").status_code == 200
+    a0 = client.get(f"/api/me/{tokens[0]}/assignee").json()
+    a1 = client.get(f"/api/me/{tokens[1]}/assignee").json()
+    a2 = client.get(f"/api/me/{tokens[2]}/assignee").json()
+    assert (a0["name"], a1["name"], a2["name"]) == ("P2", "P0", "P1")
+
+
+def test_draw_unsolvable_returns_422(client):
+    # n=2 mit Ausschluss in beide Richtungen ist unmöglich
+    group, _ = create_group(client, n_participants=2)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+    client.put(f"/api/groups/{at}/exclusions", json=[
+        {"giverId": pids[0], "receiverId": pids[1]},
+        {"giverId": pids[1], "receiverId": pids[0]},
+    ])
+    resp = client.post(f"/api/groups/{at}/draw")
+    assert resp.status_code == 422
+    assert resp.json()["code"] == "DRAW_UNSOLVABLE"
+    # nichts persistiert: Gruppe ist noch nicht ausgelost, Ziehung klappt nach
+    # Entfernen der Ausschlüsse
+    client.put(f"/api/groups/{at}/exclusions", json=[])
+    assert client.post(f"/api/groups/{at}/draw").status_code == 200
+
+
+def test_exclusions_frozen_after_draw(client):
+    group, _ = create_group(client, n_participants=2)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+    assert client.post(f"/api/groups/{at}/draw").status_code == 200
+    r = client.put(f"/api/groups/{at}/exclusions",
+                   json=[{"giverId": pids[0], "receiverId": pids[1]}])
+    assert r.status_code == 409
+    assert r.json()["code"] == "ALREADY_DRAWN"
+
+
+def test_one_directional_exclusion_allows_reverse(client):
+    """Einseitig: (P0->P1) ausgeschlossen, aber P1 darf weiterhin P0 ziehen.
+    n=2: einzige gültige Ziehung ist P0->P2? Nein — n=2: P0 muss P1 ziehen
+    (einziger anderer), also muss hier 422 folgen; deshalb n=3 mit zwei
+    Ausschlüssen, sodass P1->P0 erzwungen wird."""
+    group, tokens = create_group(client, n_participants=3)
+    at = group["adminToken"]
+    pids = participant_ids(client, at)
+    # P0 darf niemand anderen als P2, P2 darf niemand anderen als P1 -> P1
+    # muss P0 ziehen (einzige gültige Ziehung: 0->2, 1->0, 2->1)
+    client.put(f"/api/groups/{at}/exclusions", json=[
+        {"giverId": pids[0], "receiverId": pids[1]},
+        {"giverId": pids[2], "receiverId": pids[0]},
+    ])
+    assert client.post(f"/api/groups/{at}/draw").status_code == 200
+    a1 = client.get(f"/api/me/{tokens[1]}/assignee").json()
+    assert a1["name"] == "P0"  # umgekehrte Richtung ist nicht ausgeschlossen

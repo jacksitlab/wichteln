@@ -31,6 +31,12 @@ CREATE TABLE IF NOT EXISTS assignments (
   receiver_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
   PRIMARY KEY (group_id, giver_id)
 );
+CREATE TABLE IF NOT EXISTS exclusions (
+  group_id    TEXT NOT NULL REFERENCES groups(id) ON DELETE CASCADE,
+  giver_id    TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+  receiver_id TEXT NOT NULL REFERENCES participants(id) ON DELETE CASCADE,
+  PRIMARY KEY (group_id, giver_id, receiver_id)
+);
 """
 
 

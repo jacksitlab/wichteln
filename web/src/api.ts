@@ -2,7 +2,7 @@ import type {
   AdminGroupView, Assignee, CreateGroupResponse, JoinResponse,
   MeResponse, PersonalLinkResponse, Wish,
 } from './types'
-import { ApiError, type ApiErrorBody } from './types'
+import { ApiError, type ApiErrorBody, type Exclusion } from './types'
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const resp = await fetch(path, {
@@ -44,6 +44,15 @@ export const regenerateLink = (adminToken: string, participantId: string) =>
 export const postDraw = (adminToken: string) =>
   request<{ drawnAt: string; assignmentCount: number }>(
     'POST', `/api/groups/${adminToken}/draw`)
+
+export const getExclusions = (adminToken: string) =>
+  request<Exclusion[]>('GET', `/api/groups/${adminToken}/exclusions`)
+
+export const putExclusions = (
+  adminToken: string,
+  exclusions: { giverId: string; receiverId: string }[],
+) => request<Exclusion[]>(
+  'PUT', `/api/groups/${adminToken}/exclusions`, exclusions)
 
 export const postJoin = (joinToken: string, name: string) =>
   request<JoinResponse>('POST', `/api/join/${joinToken}`, { name })

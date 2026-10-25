@@ -92,6 +92,14 @@ export const de = {
   admin_regen_link: 'Link neu erstellen',
   admin_remove: 'Entfernen',
   admin_draw_title: 'Auslosung',
+  admin_exclusions_title: 'Ausschlüsse',
+  admin_exclusions_hint: 'Einseitig: der erste Wichtel zieht die zweite Person nicht — die umgekehrte Richtung bleibt erlaubt.',
+  admin_exclusion_entry: '{giver} zieht nicht {receiver}',
+  admin_exclusion_giver: 'Wichtel …',
+  admin_exclusion_receiver: '… zieht nicht',
+  admin_exclusion_add: 'Ausschließen',
+  admin_exclusion_remove: 'Ausschluss entfernen',
+  admin_exclusions_need_two: 'Für Ausschlüsse werden mindestens 2 Teilnehmer benötigt.',
   admin_draw_warning: 'Die Auslosung kann nicht rückgängig gemacht werden. Jeder Teilnehmer bekommt danach die Wünsche seiner Zugewiesenen zu sehen.',
   admin_draw_button: '⛄ Wichtel jetzt auslosen',
   admin_draw_min_participants: 'Mindestens 2 Teilnehmer erforderlich.',
@@ -118,6 +126,7 @@ export const de = {
   err_RATE_LIMITED: 'Zu viele Anfragen. Bitte später erneut versuchen.',
   err_VALIDATION: 'Eingabe ungültig.',
   err_TOO_FEW_PARTICIPANTS: 'Mindestens 2 Teilnehmer erforderlich.',
+  err_DRAW_UNSOLVABLE: 'Mit den konfigurierten Ausschlüssen ist keine gültige Zuteilung möglich. Bitte Ausschlüsse anpassen.',
 }
 
 export type TranslationKey = keyof typeof de

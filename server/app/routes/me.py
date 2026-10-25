@@ -14,7 +14,7 @@ def register(app):
     from fastapi import Request
     from pydantic import BaseModel, Field
 
-    from ..draw import derangement
+    from ..draw import DrawUnsolvable, constrained_permutation
     from ..tokens import new_token
 
     router = APIRouter()
@@ -22,6 +22,10 @@ def register(app):
     class WishIn(BaseModel):
         text: str = Field(min_length=1, max_length=500)
         position: int | None = Field(default=None, ge=0)
+
+    class ExclusionIn(BaseModel):
+        giverId: str
+        receiverId: str
 
     def store(req: Request) -> Store:
         return app.state.store_factory(req)
@@ -135,6 +139,50 @@ def register(app):
 
     # ---------- admin actions (kept in me.py; share store/helpers) ----------
 
+    def participant_name_map(s: Store, gid: str) -> dict[str, str]:
+        return {p["id"]: p["name"] for p in s.participants_of_group(gid)}
+
+    def exclusion_out(row, names: dict[str, str]) -> dict:
+        return {
+            "giverId": row["giver_id"],
+            "receiverId": row["receiver_id"],
+            "giverName": names[row["giver_id"]],
+            "receiverName": names[row["receiver_id"]],
+        }
+
+    @router.get("/api/groups/{admin_token}/exclusions")
+    def list_exclusions(admin_token: str, request: Request):
+        group = require_group(request, admin_token)
+        s = store(request)
+        names = participant_name_map(s, group["id"])
+        return [
+            exclusion_out(row, names)
+            for row in s.exclusions_of_group(group["id"])
+        ]
+
+    @router.put("/api/groups/{admin_token}/exclusions")
+    def replace_exclusions(admin_token: str, body: list[ExclusionIn], request: Request):
+        group = require_group(request, admin_token)
+        if group["drawn_at"] is not None:
+            raise ApiError(409, "ALREADY_DRAWN",
+                           "The drawing has already taken place. "
+                           "Exclusions can no longer be changed.")
+        s = store(request)
+        names = participant_name_map(s, group["id"])
+        pairs = []
+        for ex in body:
+            if ex.giverId == ex.receiverId:
+                raise ApiError(422, "VALIDATION",
+                               "A participant cannot be excluded from themselves.")
+            if ex.giverId not in names or ex.receiverId not in names:
+                raise ApiError(422, "VALIDATION", "Unknown participant ID.")
+            pairs.append((ex.giverId, ex.receiverId))
+        s.replace_exclusions(group["id"], pairs)
+        return [
+            exclusion_out(row, names)
+            for row in s.exclusions_of_group(group["id"])
+        ]
+
     @router.delete(
         "/api/groups/{admin_token}/participants/{participant_id}", status_code=204
     )
@@ -178,7 +226,12 @@ def register(app):
         conn = s.conn
         conn.execute("BEGIN IMMEDIATE")
         try:
-            perm = derangement(len(participants))
+            # index -> position in the participants list
+            idx = {p["id"]: i for i, p in enumerate(participants)}
+            forbidden = [ {i} for i in range(len(participants)) ]
+            for ex in s.exclusions_of_group(group["id"]):
+                forbidden[idx[ex["giver_id"]]].add(idx[ex["receiver_id"]])
+            perm = constrained_permutation(len(participants), forbidden)
             pairs = [
                 (participants[i]["id"], participants[perm[i]]["id"])
                 for i in range(len(participants))
@@ -187,6 +240,10 @@ def register(app):
             drawn_at = utcnow_iso()
             s.mark_drawn(group["id"], drawn_at)
             conn.execute("COMMIT")
+        except DrawUnsolvable:
+            conn.execute("ROLLBACK")
+            raise ApiError(422, "DRAW_UNSOLVABLE",
+                           "No valid assignment possible with the configured exclusions.")
         except Exception:
             conn.execute("ROLLBACK")
             raise

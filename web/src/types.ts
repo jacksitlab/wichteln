@@ -55,6 +55,13 @@ export interface PersonalLinkResponse {
   personalUrl: string
 }
 
+export interface Exclusion {
+  giverId: string
+  receiverId: string
+  giverName: string
+  receiverName: string
+}
+
 export interface ApiErrorBody {
   code: string
   message: string

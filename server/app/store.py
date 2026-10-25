@@ -148,6 +148,19 @@ class Store:
 
     # ---------- drawing ----------
 
+    def exclusions_of_group(self, gid: str) -> list[sqlite3.Row]:
+        return self.conn.execute(
+            "SELECT * FROM exclusions WHERE group_id = ? ORDER BY rowid", (gid,)
+        ).fetchall()
+
+    def replace_exclusions(self, gid: str, pairs: list[tuple[str, str]]) -> None:
+        """Full replacement; deduplicated by the PRIMARY KEY."""
+        self.conn.execute("DELETE FROM exclusions WHERE group_id = ?", (gid,))
+        self.conn.executemany(
+            "INSERT OR IGNORE INTO exclusions (group_id, giver_id, receiver_id) VALUES (?,?,?)",
+            [(gid, g, r) for g, r in pairs],
+        )
+
     def assignments_of_group(self, gid: str) -> list[sqlite3.Row]:
         return self.conn.execute(
             "SELECT * FROM assignments WHERE group_id = ?", (gid,)

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
-import { getAdminGroup, patchGroup, postDraw, removeParticipant, regenerateLink } from '../api'
-import type { AdminGroupView, PersonalLinkResponse } from '../types'
+import { getAdminGroup, getExclusions, patchGroup, postDraw, putExclusions, removeParticipant, regenerateLink } from '../api'
+import type { AdminGroupView, Exclusion, PersonalLinkResponse } from '../types'
 import { ApiError } from '../types'
 import { ConfirmDialog, LinkBox, Toast } from '../components/Widgets'
 import { absUrl } from '../urls'
@@ -12,12 +12,15 @@ export default function AdminPage() {
   const { t, locale } = useT()
   const { adminToken = '' } = useParams()
   const [group, setGroup] = useState<AdminGroupView | null>(null)
+  const [exclusions, setExclusions] = useState<Exclusion[]>([])
   const [error, setError] = useState<string | null>(null)
   const [showDraw, setShowDraw] = useState(false)
   const [drawBusy, setDrawBusy] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [newLink, setNewLink] = useState<PersonalLinkResponse | null>(null)
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
+  const [exGiver, setExGiver] = useState('')
+  const [exReceiver, setExReceiver] = useState('')
 
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState('')
@@ -33,6 +36,9 @@ export default function AdminPage() {
         setDrawDate(g.drawDate ?? '')
       })
       .catch((err) => setError(err instanceof ApiError ? err.localizedMessage(t) : t('error_server')))
+    getExclusions(adminToken)
+      .then(setExclusions)
+      .catch(() => { /* exclusions are optional in the UI */ })
   }, [adminToken]) // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -87,13 +93,48 @@ export default function AdminPage() {
   async function doRemove(pid: string) {
     try {
       await removeParticipant(adminToken, pid)
-      setGroup(await getAdminGroup(adminToken))
+      const g = await getAdminGroup(adminToken)
+      setGroup(g)
+      // Ausschlüsse des entfernten Teilnehmers lokal mitfiltern (Backend löscht
+      // sie per ON DELETE CASCADE mit), bis der nächste GET sie liefert
+      setExclusions((prev) => prev.filter((ex) => ex.giverId !== pid && ex.receiverId !== pid))
       setToast(t('admin_toast_removed'))
     } catch (err) {
       setToast(err instanceof ApiError ? err.localizedMessage(t) : t('admin_toast_error'))
     } finally {
       setConfirmRemove(null)
     }
+  }
+
+  async function saveExclusions(next: Exclusion[]) {
+    try {
+      const saved = await putExclusions(adminToken, next.map((ex) => ({
+        giverId: ex.giverId, receiverId: ex.receiverId,
+      })))
+      setExclusions(saved)
+      return true
+    } catch (err) {
+      setToast(err instanceof ApiError ? err.localizedMessage(t) : t('admin_toast_error'))
+      return false
+    }
+  }
+
+  async function addExclusion() {
+    if (!exGiver || !exReceiver || exGiver === exReceiver) return
+    if (exclusions.some((ex) => ex.giverId === exGiver && ex.receiverId === exReceiver)) return
+    const nameOf = (id: string) => group?.participants.find((p) => p.id === id)?.name ?? '?'
+    const next = [...exclusions, {
+      giverId: exGiver, receiverId: exReceiver,
+      giverName: nameOf(exGiver), receiverName: nameOf(exReceiver),
+    }]
+    if (await saveExclusions(next)) {
+      setExGiver('')
+      setExReceiver('')
+    }
+  }
+
+  async function removeExclusion(ex: Exclusion) {
+    await saveExclusions(exclusions.filter((x) => x !== ex))
   }
 
   async function newLinkFor(pid: string) {
@@ -207,6 +248,62 @@ export default function AdminPage() {
           ))}
         </ul>
       </div>
+
+      {!drawn && (
+        <div className="card">
+          <h2 className="section-title">{t('admin_exclusions_title')}</h2>
+          <p className="muted" style={{ marginBottom: 6 }}>{t('admin_exclusions_hint')}</p>
+          {exclusions.length > 0 && (
+            <ul className="participants" style={{ marginBottom: 12 }}>
+              {exclusions.map((ex) => (
+                <li key={`${ex.giverId}-${ex.receiverId}`}>
+                  <span>
+                    {t('admin_exclusion_entry', {
+                      giver: ex.giverName, receiver: ex.receiverName,
+                    })}
+                  </span>
+                  <button
+                    className="icon" title={t('admin_exclusion_remove')}
+                    onClick={() => removeExclusion(ex)}
+                  >
+                    {'\u2715'}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+          {group.participants.length >= 2 ? (
+            <form
+              className="add"
+              onSubmit={(e) => { e.preventDefault(); addExclusion() }}
+            >
+              <select value={exGiver} onChange={(e) => setExGiver(e.target.value)}>
+                <option value="">{t('admin_exclusion_giver')}</option>
+                {group.participants.map((p) => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+              <span aria-hidden="true" style={{ alignSelf: 'center' }}>→</span>
+              <select value={exReceiver} onChange={(e) => setExReceiver(e.target.value)}>
+                <option value="">{t('admin_exclusion_receiver')}</option>
+                {group.participants
+                  .filter((p) => p.id !== exGiver)
+                  .map((p) => (
+                    <option key={p.id} value={p.id}>{p.name}</option>
+                  ))}
+              </select>
+              <button
+                className="btn" type="submit"
+                disabled={!exGiver || !exReceiver || exGiver === exReceiver}
+              >
+                {t('admin_exclusion_add')}
+              </button>
+            </form>
+          ) : (
+            <p className="muted">{t('admin_exclusions_need_two')}</p>
+          )}
+        </div>
+      )}
 
       {!drawn && (
         <div className="card" style={{ textAlign: 'center' }}>
