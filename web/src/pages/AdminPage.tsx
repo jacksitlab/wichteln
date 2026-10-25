@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
-import { getAdminGroup, getExclusions, patchGroup, postDraw, putExclusions, removeParticipant, regenerateLink } from '../api'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { getAdminGroup, getExclusions, patchGroup, postDraw, putExclusions, removeParticipant, deleteGroup, regenerateLink } from '../api'
 import type { AdminGroupView, Exclusion, PersonalLinkResponse } from '../types'
 import { ApiError } from '../types'
 import { ConfirmDialog, LinkBox, Toast } from '../components/Widgets'
@@ -11,6 +11,7 @@ import { StarHero } from '../components/Decorations'
 export default function AdminPage() {
   const { t, locale } = useT()
   const { adminToken = '' } = useParams()
+  const navigate = useNavigate()
   const [group, setGroup] = useState<AdminGroupView | null>(null)
   const [exclusions, setExclusions] = useState<Exclusion[]>([])
   const [error, setError] = useState<string | null>(null)
@@ -19,6 +20,7 @@ export default function AdminPage() {
   const [toast, setToast] = useState<string | null>(null)
   const [newLink, setNewLink] = useState<PersonalLinkResponse | null>(null)
   const [confirmRemove, setConfirmRemove] = useState<string | null>(null)
+  const [showDeleteGroup, setShowDeleteGroup] = useState(false)
   const [exGiver, setExGiver] = useState('')
   const [exReceiver, setExReceiver] = useState('')
 
@@ -135,6 +137,16 @@ export default function AdminPage() {
 
   async function removeExclusion(ex: Exclusion) {
     await saveExclusions(exclusions.filter((x) => x !== ex))
+  }
+
+  async function doDeleteGroup() {
+    try {
+      await deleteGroup(adminToken)
+      navigate('/')
+    } catch (err) {
+      setToast(err instanceof ApiError ? err.localizedMessage(t) : t('admin_toast_error'))
+      setShowDeleteGroup(false)
+    }
   }
 
   async function newLinkFor(pid: string) {
@@ -322,6 +334,14 @@ export default function AdminPage() {
         </div>
       )}
 
+      <div className="card" style={{ textAlign: 'center', borderColor: '#5c2e2e' }}>
+        <h2 className="section-title">{t('admin_delete_title')}</h2>
+        <p className="muted" style={{ marginBottom: 14 }}>{t('admin_delete_hint')}</p>
+        <button className="btn danger" onClick={() => setShowDeleteGroup(true)}>
+          {t('admin_delete_button')}
+        </button>
+      </div>
+
       {showDraw && (
         <ConfirmDialog
           title={t('admin_draw_dialog_title')}
@@ -342,6 +362,16 @@ export default function AdminPage() {
           confirmLabel={t('admin_remove_dialog_confirm')}
           onConfirm={() => doRemove(confirmRemove)}
           onCancel={() => setConfirmRemove(null)}
+        />
+      )}
+
+      {showDeleteGroup && (
+        <ConfirmDialog
+          title={t('admin_delete_dialog_title')}
+          text={t('admin_delete_dialog_text')}
+          confirmLabel={t('admin_delete_dialog_confirm')}
+          onConfirm={doDeleteGroup}
+          onCancel={() => setShowDeleteGroup(false)}
         />
       )}
 

@@ -37,6 +37,9 @@ export const patchGroup = (
 export const removeParticipant = (adminToken: string, participantId: string) =>
   request<void>('DELETE', `/api/groups/${adminToken}/participants/${participantId}`)
 
+export const deleteGroup = (adminToken: string) =>
+  request<void>('DELETE', `/api/groups/${adminToken}`)
+
 export const regenerateLink = (adminToken: string, participantId: string) =>
   request<PersonalLinkResponse>(
     'POST', `/api/groups/${adminToken}/participants/${participantId}/link`)

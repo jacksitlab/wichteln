@@ -100,7 +100,13 @@ export const de = {
   admin_exclusion_add: 'Ausschließen',
   admin_exclusion_remove: 'Ausschluss entfernen',
   admin_exclusions_need_two: 'Für Ausschlüsse werden mindestens 2 Wichtel benötigt.',
-  admin_draw_warning: 'Die Auslosung kann nicht rückgängig gemacht werden. Jeder Wichtel bekommt danach die Wünsche seiner zugewiesenen Person zu sehen.',
+  admin_delete_title: 'Gruppe löschen',
+  admin_delete_hint: 'Löscht die Gruppe samt aller Teilnehmer, Wünsche, Ausschlüsse und Zuteilungen unwiderruflich. Alle Links werden ungültig.',
+  admin_delete_button: 'Gruppe endgültig löschen',
+  admin_delete_dialog_title: 'Wirklich alles löschen?',
+  admin_delete_dialog_text: 'Damit werden alle Daten dieser Wichtelrunde unwiderruflich gelöscht — auch die Wünsche und die Auslosung. Alle Links (auch die der Teilnehmer) werden ungültig. Das kann nicht rückgängig gemacht werden.',
+  admin_delete_dialog_confirm: 'Endgültig löschen',
+  admin_draw_warning: 'Die Auslosung kann nicht rückgängig gemacht werden. Jeder Teilnehmer bekommt danach die Wünsche seiner Zugewiesenen zu sehen.',
   admin_draw_button: '⛄ Wichtel jetzt auslosen',
   admin_draw_min_participants: 'Mindestens 2 Wichtel erforderlich.',
   admin_draw_dialog_title: 'Wichtel auslosen?',
@@ -129,7 +135,7 @@ export const de = {
   err_DRAW_UNSOLVABLE: 'Mit den konfigurierten Ausschlüssen ist keine gültige Zuteilung möglich. Bitte Ausschlüsse anpassen.',
 
   // Footer
-  footer_privacy: 'Diese Seite speichert nur das Nötigste: Name, Wünsche und Gruppeninfos — ohne Cookies, ohne Tracking, ohne Dritte. Die Daten liegen auf dem Familien-Server und werden nach der Wichtelei gelöscht, sobald der Admin die Gruppe entfernt.',
+  footer_privacy: 'Diese Seite speichert nur das Nötigste: Name, Wünsche und Gruppeninfos — ohne Cookies, ohne Tracking, ohne Dritte. Die Daten liegen auf diesem Server und werden nach der Wichtelei gelöscht, sobald der Admin die Gruppe entfernt.',
   footer_code: 'Quellcode auf GitHub',
 }
 

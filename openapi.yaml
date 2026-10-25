@@ -49,6 +49,21 @@ paths:
           $ref: '#/components/responses/RateLimited'
 
   /api/groups/{adminToken}:
+    delete:
+      tags: [admin]
+      summary: Delete the group (irreversible)
+      description: >-
+        Deletes the group including ALL participants, wishes, exclusions and
+        assignments. The admin token and all personal tokens become invalid.
+        Irreversible — there is no undo. Returns 204 on success.
+      operationId: deleteGroup
+      parameters:
+        - $ref: '#/components/parameters/AdminToken'
+      responses:
+        '204':
+          description: Group and all its data deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
     get:
       tags: [admin]
       summary: Admin view of the group

@@ -99,6 +99,12 @@ export const en: Record<TranslationKey, string> = {
   admin_exclusion_add: 'Exclude',
   admin_exclusion_remove: 'Remove exclusion',
   admin_exclusions_need_two: 'Exclusions require at least 2 participants.',
+  admin_delete_title: 'Delete group',
+  admin_delete_hint: 'Permanently deletes the group with all participants, wishes, exclusions and assignments. All links become invalid.',
+  admin_delete_button: 'Delete group permanently',
+  admin_delete_dialog_title: 'Really delete everything?',
+  admin_delete_dialog_text: 'This irreversibly deletes all data of this Secret Santa round — including all wishes and the drawing. All links (also those of the participants) become invalid. This cannot be undone.',
+  admin_delete_dialog_confirm: 'Delete permanently',
   admin_draw_warning: 'The drawing cannot be undone. Afterwards every participant sees the wishes of their assigned person.',
   admin_draw_button: '⛄ Draw Santas now',
   admin_draw_min_participants: 'At least 2 participants are required.',
@@ -128,6 +134,6 @@ export const en: Record<TranslationKey, string> = {
   err_DRAW_UNSOLVABLE: 'No valid assignment possible with the configured exclusions. Please adjust the exclusions.',
 
   // Footer
-  footer_privacy: 'This site stores only the essentials: name, wishes and group info — no cookies, no tracking, no third parties. The data lives on the family server and is deleted once the admin removes the group.',
+  footer_privacy: 'This site stores only the essentials: name, wishes and group info — no cookies, no tracking, no third parties. The data lives on this server and is deleted once the admin removes the group.',
   footer_code: 'Source code on GitHub',
 }

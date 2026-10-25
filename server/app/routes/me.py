@@ -183,6 +183,13 @@ def register(app):
             for row in s.exclusions_of_group(group["id"])
         ]
 
+    @router.delete("/api/groups/{admin_token}", status_code=204)
+    def delete_group(admin_token: str, request: Request):
+        """Deletes the group including all participants, wishes,
+        exclusions and assignments. Irreversible."""
+        group = require_group(request, admin_token)
+        store(request).delete_group(group["id"])
+
     @router.delete(
         "/api/groups/{admin_token}/participants/{participant_id}", status_code=204
     )

@@ -62,6 +62,11 @@ class Store:
             "UPDATE groups SET drawn_at = ? WHERE id = ?", (drawn_at, gid)
         )
 
+    def delete_group(self, gid: str) -> None:
+        """Deletes the group; participants/wishes/assignments/exclusions
+        cascade via ON DELETE CASCADE."""
+        self.conn.execute("DELETE FROM groups WHERE id = ?", (gid,))
+
     # ---------- participants ----------
 
     def add_participant(self, gid: str, name: str, personal_token_h: str) -> sqlite3.Row:

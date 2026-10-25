@@ -139,7 +139,7 @@ export default function ParticipantPage() {
         <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
 
-      <div className="status"><p>{statusLine}</p></div>
+      <div className="status">{statusLine}</div>
 
       {me.groupDescription ? (
         <div className="card">
@@ -202,7 +202,7 @@ export default function ParticipantPage() {
       )}
 
       {!me.drawn && (
-        <p className="muted" style={{ textAlign: 'center', marginTop: 24 , marginBottom: 160}}>
+        <p className="muted" style={{ textAlign: 'center', marginTop: 24 }}>
           <button className="btn danger" onClick={() => setShowLeave(true)}>
             {t('leave_button')}
           </button>

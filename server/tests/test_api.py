@@ -281,6 +281,33 @@ def test_admin_view_and_patch(client):
     assert view["joinUrl"] == group["joinUrl"]
 
 
+# ---------- Gruppenlöschung (Admin) ----------
+
+def test_admin_can_delete_group_with_all_data(client):
+    group, tokens = create_group(client, n_participants=3)
+    at = group["adminToken"]
+    # Wünsche und Auslosung erzeugen, damit der Cascade-Pfad geprüft ist
+    client.post(f"/api/me/{tokens[0]}/wishes", json={"text": "Wunsch"})
+    client.post(f"/api/groups/{at}/draw")
+
+    resp = client.delete(f"/api/groups/{at}")
+    assert resp.status_code == 204
+
+    # Admin-Token ist tot (Gruppe weg -> uniformes 404)
+    assert client.get(f"/api/groups/{at}").status_code == 404
+    # Alle Personal-Tokens sind tot
+    for t in tokens:
+        assert client.get(f"/api/me/{t}").status_code == 404
+        assert client.get(f"/api/me/{t}/assignee").status_code == 404
+    # Zweitaufruf: uniformes 404
+    assert client.delete(f"/api/groups/{at}").status_code == 404
+
+
+def test_delete_group_with_invalid_token_404(client):
+    resp = client.delete("/api/groups/invalidinvalidinvalidinvalidinvalidinvalid12")
+    assert resp.status_code == 404
+
+
 # ---------- Rate-Limit ----------
 
 def test_rate_limit_on_group_creation(client):
