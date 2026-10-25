@@ -5,6 +5,7 @@ import type { ApiErrorBody, Assignee, MeResponse } from '../types'
 import { ApiError } from '../types'
 import { ConfirmDialog, Toast, WishText } from '../components/Widgets'
 import { Snowman } from '../components/Decorations'
+import { StarHero } from '../components/Decorations'
 import { useT } from '../i18n'
 
 /**
@@ -120,7 +121,7 @@ export default function ParticipantPage() {
   return (
     <div className="wrap">
       <header className="page">
-        <div className="flakes">{'\u2744\u2744\u2744'}</div>
+        <StarHero />
         <h1 className="page-title">{me.groupTitle}</h1>
         <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
@@ -159,7 +160,7 @@ export default function ParticipantPage() {
             <div>
               {assignee.wishes.map((w) => (
                 <div className="wish" key={w.id}>
-                  <span className="n">{w.position + 1}.</span> <WishText text={w.text} />
+                  <span className="n">{'\u2726'}</span> <WishText text={w.text} />
                 </div>
               ))}
             </div>
@@ -176,7 +177,7 @@ export default function ParticipantPage() {
           )}
           {me.wishes.map((w) => (
             <div className="wish" key={w.id}>
-              <span className="n">{w.position + 1}.</span> <WishText text={w.text} />
+              <span className="n">{'\u2726'}</span> <WishText text={w.text} />
               <button className="icon" title={t('delete')} onClick={() => removeWish(w.id)}>
                 {'\u2715'}
               </button>

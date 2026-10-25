@@ -6,6 +6,7 @@ import { ApiError } from '../types'
 import { ConfirmDialog, LinkBox, Toast } from '../components/Widgets'
 import { absUrl } from '../urls'
 import { useT } from '../i18n'
+import { StarHero } from '../components/Decorations'
 
 export default function AdminPage() {
   const { t, locale } = useT()
@@ -117,7 +118,7 @@ export default function AdminPage() {
   return (
     <div className="wrap">
       <header className="page">
-        <div className="flakes">{'\u2744\u2744\u2744'}</div>
+        <StarHero />
         <h1 className="page-title">{group.title}</h1>
         {plannedDate && <p className="sub">{t('admin_planned_date', { date: plannedDate })}</p>}
       </header>

@@ -31,7 +31,16 @@
   }
   .wrap { position: relative; z-index: 1; max-width: 640px; margin: 0 auto; padding: 32px 20px 64px; }
   header { text-align: center; margin-bottom: 8px; }
-  .flake { font-size: 22px; color: #c8a24a; letter-spacing: 10px; }
+  .star {
+    font-size: 58px; color: #c8a24a; line-height: 1;
+    display: inline-block; margin-bottom: 6px;
+    animation: twinkle 3.2s ease-in-out infinite;
+    text-shadow: 0 0 18px rgba(200, 162, 74, 0.45);
+  }
+  @keyframes twinkle {
+    0%, 100% { opacity: 1; text-shadow: 0 0 18px rgba(200, 162, 74, 0.45); }
+    50%      { opacity: 0.55; text-shadow: 0 0 5px rgba(200, 162, 74, 0.15); }
+  }
   h1 {
     font-family: "Caveat", cursive; font-weight: 600; font-size: 52px;
     color: #f4ead6; margin: 0 0 2px; line-height: 1.1;
@@ -62,7 +71,7 @@
     border-bottom: 1px solid #24402f; font-size: 15px;
   }
   .wish:last-child { border-bottom: none; }
-  .wish .n { color: #c8a24a; font-family: Georgia, serif; font-size: 14px; min-width: 20px; }
+  .wish .n { color: #c8a24a; font-size: 13px; }
   .wish button { margin-left: auto; background: none; border: none; color: #6f8375;
     cursor: pointer; font-size: 15px; }
   .wish button:hover { color: #d8b96a; }
@@ -113,7 +122,7 @@
 
 <div class="wrap">
   <header>
-    <div class="flake">&#10052; &#10052; &#10052;</div>
+    <div class="star">&#10022;</div>
     <h1>Weihnachten 2026</h1>
     <p class="sub">Die Wichtelrunde der Familie</p>
   </header>
@@ -152,9 +161,9 @@
     <h2>Deine Wünsche</h2>
     <p class="muted" style="margin-bottom:6px">Nur du und dein Wichtel sehen diese Liste.</p>
     <div id="wishlist">
-      <div class="wish"><span class="n">1.</span> Grillbuch: „Rivalen am Rost"</div>
-      <div class="wish"><span class="n">2.</span> Gute Bohnen für den Kaffeevollautomat</div>
-      <div class="wish"><span class="n">3.</span> Warme Socken für die Winterwanderung</div>
+      <div class="wish"><span class="n">&#10022;</span> Grillbuch: „Rivalen am Rost"</div>
+      <div class="wish"><span class="n">&#10022;</span> Gute Bohnen für den Kaffeevollautomat</div>
+      <div class="wish"><span class="n">&#10022;</span> Warme Socken für die Winterwanderung</div>
     </div>
     <form class="add" onsubmit="return addWish(event)">
       <input type="text" id="newwish" placeholder="Noch ein Wunsch …" maxlength="500">
@@ -166,8 +175,8 @@
     <h2>Du wichtelst f&uuml;r</h2>
     <div class="name">Clara</div>
     <div id="assignee-wishes">
-      <div class="wish"><span class="n">1.</span> Ein gutes Messerset</div>
-      <div class="wish"><span class="n">2.</span> Krimi-Hörbuch für lange Autofahrten</div>
+      <div class="wish"><span class="n">&#10022;</span> Ein gutes Messerset</div>
+      <div class="wish"><span class="n">&#10022;</span> Krimi-Hörbuch für lange Autofahrten</div>
     </div>
   </div>
 
@@ -204,7 +213,7 @@ function addWish(e) {
   count++;
   const div = document.createElement('div');
   div.className = 'wish';
-  div.innerHTML = '<span class="n">' + count + '.</span> ' +
+  div.innerHTML = '<span class="n">&#10022;</span> ' +
     inp.value.replace(/</g, '&lt;') +
     ' <button onclick="this.parentElement.remove()" title="Löschen">&#10005;</button>';
   document.getElementById('wishlist').appendChild(div);

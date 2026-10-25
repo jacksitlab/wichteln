@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 import { useT } from '../i18n'
+import { StarHero } from '../components/Decorations'
 
 export default function HomePage() {
   const { t } = useT()
   return (
     <div className="wrap">
       <header className="page">
-        <div className="flakes">{'\u2744\u2744\u2744'}</div>
+        <StarHero />
         <h1 className="page-title">{t('app_name')}</h1>
         <p className="sub">{t('home_sub')}</p>
       </header>

@@ -5,6 +5,7 @@ import { ApiError } from '../types'
 import { LinkBox } from '../components/Widgets'
 import { absUrl } from '../urls'
 import { useT } from '../i18n'
+import { StarHero } from '../components/Decorations'
 
 export default function CreatePage() {
   const { t } = useT()
@@ -39,6 +40,7 @@ export default function CreatePage() {
     return (
       <div className="wrap">
         <header className="page">
+          <StarHero />
           <h1 className="page-title">{t('create_done_title')}</h1>
           <p className="sub">{t('create_done_sub')}</p>
         </header>
@@ -70,7 +72,7 @@ export default function CreatePage() {
   return (
     <div className="wrap">
       <header className="page">
-        <div className="flakes">{'\u2744\u2744\u2744'}</div>
+        <StarHero />
         <h1 className="page-title">{t('create_title')}</h1>
         <p className="sub">{t('create_sub')}</p>
       </header>

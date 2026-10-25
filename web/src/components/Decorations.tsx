@@ -41,7 +41,26 @@ export function Snowfall() {
           0%   { transform: translate3d(0, -10vh, 0) rotate(0deg); }
           100% { transform: translate3d(-6vw, 110vh, 0) rotate(360deg); }
         }
+        .star-hero {
+          font-size: 58px; color: var(--gold); line-height: 1;
+          display: inline-block; margin-bottom: 6px;
+          animation: twinkle 3.2s ease-in-out infinite;
+          text-shadow: 0 0 18px rgba(200, 162, 74, 0.45);
+        }
+        @keyframes twinkle {
+          0%, 100% { opacity: 1; text-shadow: 0 0 18px rgba(200, 162, 74, 0.45); }
+          50%      { opacity: 0.55; text-shadow: 0 0 5px rgba(200, 162, 74, 0.15); }
+        }
       `}</style>
+    </div>
+  )
+}
+
+/** Großer, sanft flackernder Stern über dem Seitentitel (Sketch 004). */
+export function StarHero() {
+  return (
+    <div aria-hidden="true" style={{ textAlign: 'center' }}>
+      <span className="star-hero">{'\u2726'}</span>
     </div>
   )
 }

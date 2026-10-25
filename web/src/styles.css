@@ -130,7 +130,7 @@ label.field input, label.field textarea { margin-top: 4px; }
   font-size: 15px;
 }
 .wish:last-child { border-bottom: none; }
-.wish .n { color: var(--gold); font-family: Georgia, serif; font-size: 14px; min-width: 20px; }
+.wish .n { color: var(--gold); font-size: 13px; }
 .wish button.icon {
   margin-left: auto; background: none; border: none;
   color: #6f8375; cursor: pointer; font-size: 15px;
