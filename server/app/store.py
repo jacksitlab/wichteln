@@ -97,6 +97,14 @@ class Store:
             (gid,),
         ).fetchall()
 
+    def participant_name_taken(self, gid: str, name: str) -> bool:
+        """Case-insensitive duplicate check (surrounding whitespace trimmed)."""
+        row = self.conn.execute(
+            "SELECT 1 FROM participants WHERE group_id = ? AND LOWER(TRIM(name)) = LOWER(TRIM(?))",
+            (gid, name),
+        ).fetchone()
+        return row is not None
+
     def delete_participant(self, pid: str) -> None:
         self.conn.execute("DELETE FROM participants WHERE id = ?", (pid,))
 

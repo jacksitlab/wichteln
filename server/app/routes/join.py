@@ -30,8 +30,12 @@ def register(app):
         if group["drawn_at"] is not None:
             raise ApiError(409, "ALREADY_DRAWN",
                            "The drawing has already taken place. Joining is no longer possible.")
+        name = body.name.strip()
+        if s.participant_name_taken(group["id"], name):
+            raise ApiError(409, "DUPLICATE_NAME",
+                           "This name is already taken in this group.")
         personal_token = new_token()
-        participant = s.add_participant(group["id"], body.name, token_hash(personal_token))
+        participant = s.add_participant(group["id"], name, token_hash(personal_token))
         base = app.state.settings.base_url or str(request.base_url).rstrip("/")
         return {
             "participant": {

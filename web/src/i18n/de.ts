@@ -128,6 +128,7 @@ export const de = {
   // Error codes (mapped from backend)
   err_NOT_FOUND: 'Link ungültig oder unbekannt.',
   err_ALREADY_DRAWN: 'Die Auslosung wurde bereits durchgeführt.',
+  err_DUPLICATE_NAME: 'Dieser Name ist in dieser Runde bereits vergeben.',
   err_NOT_DRAWN: 'Die Auslosung steht noch aus.',
   err_RATE_LIMITED: 'Zu viele Anfragen. Bitte später erneut versuchen.',
   err_VALIDATION: 'Eingabe ungültig.',

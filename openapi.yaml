@@ -297,11 +297,22 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
         '409':
-          description: Joining no longer possible (already drawn)
+          description: Joining no longer possible (already drawn) or the name is already taken in this group (DUPLICATE_NAME)
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+          examples:
+            drawn:
+              summary: Already drawn
+              value:
+                code: ALREADY_DRAWN
+                message: 'The drawing has already taken place. Joining is no longer possible.'
+            duplicate:
+              summary: Name already taken in this group
+              value:
+                code: DUPLICATE_NAME
+                message: 'This name is already taken in this group.'
         '422':
           $ref: '#/components/responses/ValidationError'
         '429':
@@ -675,6 +686,9 @@ components:
           minLength: 1
           maxLength: 60
           example: Michael
+          description: >-
+            Must be unique within the group (case-insensitive, surrounding
+            whitespace is trimmed). Duplicate names are rejected with 409.
 
     JoinResponse:
       type: object

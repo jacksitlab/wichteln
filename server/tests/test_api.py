@@ -95,6 +95,27 @@ def test_join_after_draw_409(client):
     assert late.status_code == 409
 
 
+def test_join_duplicate_name_409(client):
+    group, tokens = create_group(client, n_participants=2)  # P0, P1
+    # exakter Duplikat
+    r = client.post(f"/api/join/{group['joinToken']}", json={"name": "P0"})
+    assert r.status_code == 409
+    assert r.json()["code"] == "DUPLICATE_NAME"
+    # Case-insensitive
+    r = client.post(f"/api/join/{group['joinToken']}", json={"name": "p0"})
+    assert r.status_code == 409 and r.json()["code"] == "DUPLICATE_NAME"
+    # Whitespace am Rand zählt nicht als Unterschied
+    r = client.post(f"/api/join/{group['joinToken']}", json={"name": " P0 "})
+    assert r.status_code == 409 and r.json()["code"] == "DUPLICATE_NAME"
+    # anderer Name geht durch
+    r = client.post(f"/api/join/{group['joinToken']}", json={"name": "P2"})
+    assert r.status_code == 201
+    # anderer Name in ANDERER Gruppe ist erlaubt
+    g2 = client.post("/api/groups", json={"title": "Andere Runde"}).json()
+    r = client.post(f"/api/join/{g2['joinToken']}", json={"name": "P0"})
+    assert r.status_code == 201
+
+
 # ---------- Wünsche ----------
 
 def test_wish_crud_and_positions(client):

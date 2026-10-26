@@ -127,6 +127,7 @@ export const en: Record<TranslationKey, string> = {
   // Error codes (mapped from backend)
   err_NOT_FOUND: 'Invalid or unknown link.',
   err_ALREADY_DRAWN: 'The drawing has already taken place.',
+  err_DUPLICATE_NAME: 'This name is already taken in this group.',
   err_NOT_DRAWN: 'The drawing is still pending.',
   err_RATE_LIMITED: 'Too many requests. Please try again later.',
   err_VALIDATION: 'Invalid input.',
