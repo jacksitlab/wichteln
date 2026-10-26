@@ -134,6 +134,8 @@ export const en: Record<TranslationKey, string> = {
   err_DRAW_UNSOLVABLE: 'No valid assignment possible with the configured exclusions. Please adjust the exclusions.',
 
   // Footer
-  footer_privacy: 'This site stores only the essentials: name, wishes and group info — no cookies, no tracking, no third parties. The data lives on this server and is deleted once the admin removes the group.',
+  footer_privacy: 'This site stores only the essentials: name, wishes and group info — no cookies, no tracking, no third parties. The data lives on the family server and is deleted once the admin removes the group.',
   footer_code: 'Source code on GitHub',
+  info_dialog_title: 'Info & Privacy',
+  info_button_label: 'Open info & privacy',
 }

@@ -137,6 +137,8 @@ export const de = {
   // Footer
   footer_privacy: 'Diese Seite speichert nur das Nötigste: Name, Wünsche und Gruppeninfos — ohne Cookies, ohne Tracking, ohne Dritte. Die Daten liegen auf diesem Server und werden nach der Wichtelei gelöscht, sobald der Admin die Gruppe entfernt.',
   footer_code: 'Quellcode auf GitHub',
+  info_dialog_title: 'Info & Datenschutz',
+  info_button_label: 'Info & Datenschutz öffnen',
 }
 
 export type TranslationKey = keyof typeof de
