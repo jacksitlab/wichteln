@@ -32,6 +32,7 @@ export default function JoinPage() {
     return (
       <div className="wrap">
         <header className="page">
+          <StarHero />
           <h1 className="page-title">{t('join_done_title', { name: joined.participant.name })}</h1>
           <p className="sub">{t('join_done_sub')}</p>
         </header>
