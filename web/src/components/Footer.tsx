@@ -52,7 +52,7 @@ export function Footer() {
             <p style={{ fontSize: 14, lineHeight: 1.7 }}>{t('footer_privacy')}</p>
             <p style={{ marginTop: 12 }}>
               <a
-                href="https://github.com/jacksitlab/wichtel"
+                href="https://github.com/jacksitlab/wichteln"
                 target="_blank"
                 rel="noopener noreferrer"
               >
