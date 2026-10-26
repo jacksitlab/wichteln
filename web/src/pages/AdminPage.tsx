@@ -52,14 +52,14 @@ export default function AdminPage() {
   if (error) {
     return (
       <div className="wrap">
-        <div className="status">{error}</div>
+        <div className="status"><p>{error}</p></div>
         <p className="muted" style={{ textAlign: 'center', marginTop: 16 }}>
           <Link to="/">{t('to_homepage')}</Link>
         </p>
       </div>
     )
   }
-  if (!group) return <div className="wrap"><div className="status">{t('loading')}</div></div>
+  if (!group) return <div className="wrap"><div className="status"><p>{t('loading')}</p></div></div>
 
   async function saveEdit() {
     try {
@@ -188,7 +188,7 @@ export default function AdminPage() {
       )}
 
       {drawn ? (
-        <div className="status">{t('admin_status_drawn', { date: drawnDate ?? '' })}</div>
+        <div className="status"><p>{t('admin_status_drawn', { date: drawnDate ?? '' })}</p></div>
       ) : (
         <div className="status">
           {t('admin_status_pending', { count: group.participants.length })}

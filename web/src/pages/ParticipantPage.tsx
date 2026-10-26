@@ -104,14 +104,14 @@ export default function ParticipantPage() {
   if (errorMessage) {
     return (
       <div className="wrap">
-        <div className="status">{errorMessage}</div>
+        <div className="status"><p>{errorMessage}</p></div>
         <p className="muted" style={{ textAlign: 'center', marginTop: 16 }}>
           <Link to="/">{t('to_homepage')}</Link>
         </p>
       </div>
     )
   }
-  if (!me) return <div className="wrap"><div className="status">{t('loading')}</div></div>
+  if (!me) return <div className="wrap"><div className="status"><p>{t('loading')}</p></div></div>
 
   const drawDateText = me.drawDate
     ? new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long' })
@@ -139,7 +139,7 @@ export default function ParticipantPage() {
         <p className="sub">{t('participant_greeting', { name: me.participant.name })}</p>
       </header>
 
-      <div className="status">{statusLine}</div>
+      <div className="status"><p>{statusLine}</p></div>
 
       {me.groupDescription ? (
         <div className="card">
