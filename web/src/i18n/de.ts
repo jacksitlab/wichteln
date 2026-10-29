@@ -51,7 +51,7 @@ export const de = {
   join_submit: 'Beitreten',
   join_done_title: 'Willkommen, {name}!',
   join_done_sub: 'Du bist dabei. Jetzt deinen Link sichern.',
-  join_warn: 'Wichtig: Der Link zu deiner persönlichen Wichtelwebseite wird dir nur jetzt angezeigt. Kopiere oder speichere ihn dir jetzt. Solltest du ihn doch verlieren, frage bitte den Admin.',
+  join_warn: 'Wichtig: Der Link zu deiner persönlichen Wichtelwebseite wird dir nur jetzt angezeigt. Sichere ihn dir jetzt. Solltest du ihn doch verlieren, frage bitte den Admin.',
   join_your_link: 'Dein persönlicher Link',
   join_copy_first: 'Kopiere zuerst den Link oben über die Kopieren-Schaltfläche — erst danach kannst du fortfahren.',
   join_continue: 'Über diesen Link trägst du deine Wünsche ein — und siehst nach der Auslosung, wen du beschenkst.',
@@ -60,7 +60,7 @@ export const de = {
   // Participant
   participant_greeting: 'Hallo, {name}!',
   status_drawn: '✔ Die Wichtel sind ausgelost!',
-  status_pending_date: '⏳ Auslosung am ',
+  status_pending_date: '⏳ Auslosung der Wichtel am ',
   status_pending_date_suffix: ' — trage bis dahin deine Wünsche ein.',
   status_pending: '⏳ Die Auslosung steht noch aus — trage schon jetzt deine Wünsche ein.',
   info_title: 'Info',
