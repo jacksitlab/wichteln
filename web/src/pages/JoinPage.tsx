@@ -49,7 +49,8 @@ export default function JoinPage() {
         </div>
 
         {linkCopied && (
-          <div style={{ textAlign: 'center', marginTop: '2em' }}>
+          <div className="card" style={{ textAlign: 'center', marginTop: '2em'}}>
+            <p className="muted" style={{ marginBottom: 12 }}>{t('join_continue')}</p>
             <Link to={`/p/${joined.personalToken}`} className="btn" style={{ textDecoration: 'none' }}>
               {t('join_next')}
             </Link>

@@ -218,7 +218,7 @@ export default function AdminPage() {
           </div>
         ) : (
           <div>
-            <p style={{ fontSize: 15 }}>{group.description || <span className="muted">{t('admin_no_description')}</span>}</p>
+            <p style={{ fontSize: 15, whiteSpace: 'pre-line' }}>{group.description || <span className="muted">{t('admin_no_description')}</span>}</p>
             <div style={{ marginTop: 12, textAlign: 'right' }}>
               <button className="btn ghost" onClick={() => setEditing(true)}>{t('edit')}</button>
             </div>

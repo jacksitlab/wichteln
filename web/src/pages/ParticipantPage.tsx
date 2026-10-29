@@ -145,7 +145,7 @@ export default function ParticipantPage() {
         <div className="card">
           <Snowman />
           <h2 className="section-title">{t('info_title')}</h2>
-          <p style={{ fontSize: 15 }}>{me.groupDescription}</p>
+          <p style={{ fontSize: 15, whiteSpace: 'pre-line' }}>{me.groupDescription}</p>
         </div>
       ) : (
         <div className="card">
