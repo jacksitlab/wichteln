@@ -81,7 +81,7 @@ export const en: Record<TranslationKey, string> = {
   // Admin
   admin_planned_date: 'Drawing planned for {date}',
   admin_status_drawn: '✔ Drawn on {date} — all Santas are assigned.',
-  admin_status_pending: '⏳ Not drawn yet — {count} participants joined',
+  admin_status_pending: '⏳ Not drawn yet — participants joined: {count}',
   admin_description_title: 'Description',
   admin_no_description: 'No description',
   admin_join_link_title: 'Join link',
