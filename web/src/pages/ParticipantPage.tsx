@@ -191,7 +191,7 @@ export default function ParticipantPage() {
           <form className="add" onSubmit={submitWish}>
             <input
               type="text" value={newWish} maxLength={500}
-              placeholder={t('wish_placeholder')}
+              placeholder={me.wishes.length>0 ? t('another_wish_placeholder'): t('new_wish_placeholder')}
               onChange={(e) => setNewWish(e.target.value)}
             />
             <button className="btn" type="submit" disabled={busy || !newWish.trim()}>
