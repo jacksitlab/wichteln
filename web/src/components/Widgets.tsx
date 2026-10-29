@@ -59,8 +59,8 @@ export function WishText({ text }: { text: string }) {
   )
 }
 
-/** Copy button with feedback. */
-export function CopyButton({ text }: { text: string }) {
+/** Copy button with feedback. Optionally reports when a copy succeeded. */
+export function CopyButton({ text, onCopied }: { text: string; onCopied?: () => void }) {
   const [copied, setCopied] = useState(false)
   const { t } = useT()
   useEffect(() => {
@@ -84,6 +84,7 @@ export function CopyButton({ text }: { text: string }) {
           document.body.removeChild(ta)
         }
         setCopied(true)
+        onCopied?.()
       }}
     >
       {copied ? t('copied') : t('copy')}
@@ -92,11 +93,11 @@ export function CopyButton({ text }: { text: string }) {
 }
 
 /** Zeigt einen Link mit Copy-Button an. */
-export function LinkBox({ url }: { url: string }) {
+export function LinkBox({ url, onCopied }: { url: string; onCopied?: () => void }) {
   return (
     <div className="linkbox">
       <a href={url} target="_blank" rel="noreferrer">{url}</a>
-      <CopyButton text={url} />
+      <CopyButton text={url} onCopied={onCopied} />
     </div>
   )
 }

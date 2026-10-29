@@ -52,6 +52,7 @@ export const en: Record<TranslationKey, string> = {
   join_done_sub: 'You are in. Now save your link.',
   join_warn: 'Important: This personal link will never be shown again — there is no login to recover it. Bookmark it or copy it now! If you still loose it somehow, please ask your admin.',
   join_your_link: 'Your personal link',
+  join_copy_first: 'First copy the link above using the button — only then you can continue.',
   join_continue: 'Use this link to add your wishes — and after the drawing to see who you are gifting.',
   join_next: 'Add wishes',
 

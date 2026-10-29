@@ -14,6 +14,7 @@ export default function JoinPage() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [joined, setJoined] = useState<Awaited<ReturnType<typeof postJoin>> | null>(null)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -41,15 +42,19 @@ export default function JoinPage() {
 
         <div className="card">
           <h2 className="section-title">{t('join_your_link')}</h2>
-          <LinkBox url={absUrl(joined.personalUrl)} />
+          <LinkBox url={absUrl(joined.personalUrl)} onCopied={() => setLinkCopied(true)} />
+          {!linkCopied && (
+            <p className="muted" style={{ marginTop: 12 }}>{t('join_copy_first')}</p>
+          )}
         </div>
 
-        <div className="card" style={{ textAlign: 'center' }}>
-          <p className="muted" style={{ marginBottom: 12 }}>{t('join_continue')}</p>
-          <Link to={`/p/${joined.personalToken}`} className="btn" style={{ textDecoration: 'none' }}>
-            {t('join_next')}
-          </Link>
-        </div>
+        {linkCopied && (
+          <div style={{ textAlign: 'center', marginTop: '2em' }}>
+            <Link to={`/p/${joined.personalToken}`} className="btn" style={{ textDecoration: 'none' }}>
+              {t('join_next')}
+            </Link>
+          </div>
+        )}
       </div>
     )
   }
